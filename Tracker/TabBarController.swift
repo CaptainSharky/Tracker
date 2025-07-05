@@ -5,19 +5,22 @@ final class TabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let trackersListViewController = TrackersListViewController()
-        let statisticsViewController = StatisticsViewController()
+        let trackersVC = TrackersListViewController()
+        let statsVC = StatisticsViewController()
 
-        trackersListViewController.tabBarItem = UITabBarItem(
+        let trackersNav = UINavigationController(rootViewController: trackersVC)
+        let statsNav = UINavigationController(rootViewController: statsVC)
+
+        trackersNav.tabBarItem = UITabBarItem(
             title: "Трекеры",
             image: UIImage(resource: .tabTrackers),
             selectedImage: nil
         )
-        statisticsViewController.tabBarItem = UITabBarItem(
+        statsNav.tabBarItem = UITabBarItem(
             title: "Статистика",
             image: UIImage(resource: .tabStats),
             selectedImage: nil
         )
-        self.viewControllers = [trackersListViewController, statisticsViewController]
+        viewControllers = [trackersNav, statsNav]
     }
 }

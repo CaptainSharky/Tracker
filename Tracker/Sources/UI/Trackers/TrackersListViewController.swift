@@ -1,6 +1,11 @@
 import UIKit
 
 final class TrackersListViewController: UIViewController {
+    private var categories: [TrackerCategory] = []
+    private var completedTrackers: [TrackerRecord] = []
+    private var selectedDate: Date {
+        Calendar.current.startOfDay(for: datePicker.date)
+    }
 
     private let searchField = UISearchTextField()
     private let stubImage = UIImageView(image: UIImage(resource: .stubStar))
@@ -26,6 +31,13 @@ final class TrackersListViewController: UIViewController {
         return plusButton
     }()
 
+    private var isTrackersEmpty: Bool = false {
+        didSet {
+            stubImage.isHidden = !isTrackersEmpty
+            stubLabel.isHidden = !isTrackersEmpty
+        }
+    }
+
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -33,9 +45,45 @@ final class TrackersListViewController: UIViewController {
         configureNavBar()
         configureUI()
         layoutUI()
+
+        isTrackersEmpty = true
+
+        datePicker.addTarget(self, action: #selector(dateChanged), for: .valueChanged)
+    }
+
+    // MARK: - Public methods
+    func addTracker(_ tracker: Tracker, to categoryTitle: String) {
+        var newCategories = categories
+
+        if let index = newCategories.firstIndex(where: { $0.title == categoryTitle }) {
+            var trackers = newCategories[index].trackers
+            trackers.append(tracker)
+            newCategories[index] = TrackerCategory(title: categoryTitle, trackers: trackers)
+        } else {
+            let newCategory = TrackerCategory(title: categoryTitle, trackers: [tracker])
+            newCategories.append(newCategory)
+        }
+        categories = newCategories
+
+    }
+
+    func toggleTracker(_ tracker: Tracker) {
+        let record = TrackerRecord(trackerID: tracker.id, date: selectedDate)
+        if let index = completedTrackers.firstIndex(of: record) {
+            completedTrackers.remove(at: index)
+        } else {
+            completedTrackers.append(record)
+        }
+
+    }
+
+    func isTrackerCompleted(_ tracker: Tracker) -> Bool {
+        completedTrackers.contains { $0.trackerID == tracker.id && $0.date == selectedDate }
     }
 
     // MARK: - UI
+    @objc private func dateChanged() { }
+
     private func configureNavBar() {
         title = "Трекеры"
 

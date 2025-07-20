@@ -3,10 +3,17 @@ import UIKit
 final class TrackersListViewController: UIViewController {
     private var categories: [TrackerCategory] = []
     private var completedTrackers: [TrackerRecord] = []
+    private var isTrackersEmpty: Bool = false {
+        didSet {
+            stubImage.isHidden = !isTrackersEmpty
+            stubLabel.isHidden = !isTrackersEmpty
+        }
+    }
+
+    // MARK: - UI properties
     private var selectedDate: Date {
         Calendar.current.startOfDay(for: datePicker.date)
     }
-
     private let searchField = UISearchTextField()
     private let stubImage = UIImageView(image: UIImage(resource: .stubStar))
     private let stubLabel = UILabel()
@@ -16,11 +23,9 @@ final class TrackersListViewController: UIViewController {
         datePicker.preferredDatePickerStyle = .compact
         return datePicker
     }()
-
     private lazy var datePickerButton: UIBarButtonItem = {
         return UIBarButtonItem(customView: datePicker)
     }()
-
     private lazy var addButton: UIBarButtonItem = {
         let plusButton = UIBarButtonItem(
             image: UIImage(resource: .addTracker),
@@ -31,12 +36,14 @@ final class TrackersListViewController: UIViewController {
         return plusButton
     }()
 
-    private var isTrackersEmpty: Bool = false {
-        didSet {
-            stubImage.isHidden = !isTrackersEmpty
-            stubLabel.isHidden = !isTrackersEmpty
-        }
-    }
+    private lazy var trackersCollectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.register(TrackerViewCell.self, forCellWithReuseIdentifier: TrackerViewCell.cellIdentifier)
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        return collectionView
+    }()
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -46,9 +53,13 @@ final class TrackersListViewController: UIViewController {
         configureUI()
         layoutUI()
 
-        isTrackersEmpty = true
+        isTrackersEmpty = false
 
         datePicker.addTarget(self, action: #selector(dateChanged), for: .valueChanged)
+
+        addTracker(Tracker(title: "Поливать растения", color: UIColor(resource: .CS_18), emoji: "😪"), to: "Test")
+        addTracker(Tracker(title: "Бокс", color: UIColor(resource: .CS_8), emoji: "🥊"), to: "Test")
+        addTracker(Tracker(title: "Программировать", color: UIColor(resource: .CS_10), emoji: "💻"), to: "Test")
     }
 
     // MARK: - Public methods
@@ -81,7 +92,7 @@ final class TrackersListViewController: UIViewController {
         completedTrackers.contains { $0.trackerID == tracker.id && $0.date == selectedDate }
     }
 
-    // MARK: - UI
+    // MARK: - UI methods
     @objc private func dateChanged() { }
 
     private func configureNavBar() {
@@ -107,7 +118,7 @@ final class TrackersListViewController: UIViewController {
     }
 
     private func layoutUI() {
-        [searchField, datePicker, stubImage, stubLabel].forEach {
+        [searchField, datePicker, stubImage, stubLabel, trackersCollectionView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
@@ -124,12 +135,57 @@ final class TrackersListViewController: UIViewController {
             stubImage.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
 
             stubLabel.topAnchor.constraint(equalTo: stubImage.bottomAnchor, constant: 8),
-            stubLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+            stubLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+
+            trackersCollectionView.topAnchor.constraint(equalTo: searchField.bottomAnchor, constant: 24),
+            trackersCollectionView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            trackersCollectionView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            trackersCollectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
     }
 
-    // MARK: - Actions
+    // MARK: - Private methods
     @objc private func addTrackerTapped() {
         print("tapped")
+    }
+}
+
+// MARK: - UICollectionViewDataSource protocol
+extension TrackersListViewController: UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return categories[section].trackers.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let tracker = categories[indexPath.section].trackers[indexPath.row]
+
+        guard let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: TrackerViewCell.cellIdentifier,
+            for: indexPath
+        ) as? TrackerViewCell else {
+            return UICollectionViewCell()
+        }
+
+        cell.configureCell(tracker: tracker, completedDays: 2, isCompleted: isTrackerCompleted(tracker), currentDate: Date())
+        return cell
+    }
+}
+
+// MARK: - UICollectionViewDelegateFlowLayout protocol
+extension TrackersListViewController: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: (collectionView.bounds.width - 16 * 2 - 9) / 2, height: 148)
+    }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 9
+    }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets(top: 0, left: 16, bottom: 16, right: 16)
+    }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return 16
     }
 }

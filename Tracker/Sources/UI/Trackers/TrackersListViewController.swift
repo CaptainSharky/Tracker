@@ -7,6 +7,10 @@ final class TrackersListViewController: UIViewController {
         didSet {
             stubImage.isHidden = !isTrackersEmpty
             stubLabel.isHidden = !isTrackersEmpty
+            if isTrackersEmpty {
+                view.bringSubviewToFront(stubImage)
+                view.bringSubviewToFront(stubLabel)
+            }
         }
     }
 
@@ -53,13 +57,12 @@ final class TrackersListViewController: UIViewController {
         configureUI()
         layoutUI()
 
-        isTrackersEmpty = false
-
         datePicker.addTarget(self, action: #selector(dateChanged), for: .valueChanged)
+        isTrackersEmpty = true
 
-        addTracker(Tracker(title: "Поливать растения", color: UIColor(resource: .CS_18), emoji: "😪"), to: "Test")
-        addTracker(Tracker(title: "Бокс", color: UIColor(resource: .CS_8), emoji: "🥊"), to: "Test")
-        addTracker(Tracker(title: "Программировать", color: UIColor(resource: .CS_10), emoji: "💻"), to: "Test")
+//        addTracker(Tracker(title: "Поливать растения", color: UIColor(resource: .CS_18), emoji: "😪"), to: "Test")
+//        addTracker(Tracker(title: "Бокс", color: UIColor(resource: .CS_8), emoji: "🥊"), to: "Test")
+//        addTracker(Tracker(title: "Программировать", color: UIColor(resource: .CS_10), emoji: "💻"), to: "Test")
     }
 
     // MARK: - Public methods
@@ -75,6 +78,8 @@ final class TrackersListViewController: UIViewController {
             newCategories.append(newCategory)
         }
         categories = newCategories
+
+        isTrackersEmpty = categories.isEmpty
 
     }
 
@@ -153,6 +158,7 @@ final class TrackersListViewController: UIViewController {
 // MARK: - UICollectionViewDataSource protocol
 extension TrackersListViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        if categories.isEmpty { return 0 }
         return categories[section].trackers.count
     }
     

@@ -2,6 +2,7 @@ import UIKit
 
 final class TrackerViewCell: UICollectionViewCell {
     static let cellIdentifier = "trackerCell"
+    var onTap: ((TrackerRecord) -> Void)?
 
     // MARK: - UI properties
     private let titleLabel: UILabel = {
@@ -82,7 +83,7 @@ final class TrackerViewCell: UICollectionViewCell {
 
     }
 
-    // MARK: - UI methods
+    // MARK: - Private methods
     private func setupUI() {
         contentView.addSubview(cardView)
         contentView.addSubview(daysCountLabel)
@@ -150,12 +151,16 @@ final class TrackerViewCell: UICollectionViewCell {
         return daysCountText
     }
 
-    // MARK: - Private methods
+    // MARK: - Actions
     @objc private func doneButtonTapped() {
         isCompleted.toggle()
         updateDoneButton()
 
         completedDays += isCompleted ? 1 : -1
         daysCountLabel.text = daysCountFormatted(daysCount: completedDays)
+
+        guard let trackerId else { return }
+        let record = TrackerRecord(trackerID: trackerId, date: currentDate)
+        onTap?(record)
     }
 }

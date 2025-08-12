@@ -1,9 +1,13 @@
 import UIKit
 
 final class TrackersListViewController: UIViewController {
-    private var categories: [TrackerCategory] = []
+    private var categories: [TrackerCategory] = [] {
+        didSet {
+            isTrackersEmpty = categories.isEmpty
+        }
+    }
     private var completedTrackers: [TrackerRecord] = []
-    private var isTrackersEmpty: Bool = false {
+    private var isTrackersEmpty: Bool = true {
         didSet {
             stubImage.isHidden = !isTrackersEmpty
             stubLabel.isHidden = !isTrackersEmpty
@@ -20,16 +24,25 @@ final class TrackersListViewController: UIViewController {
     }
     private let searchField = UISearchTextField()
     private let stubImage = UIImageView(image: UIImage(resource: .stubStar))
-    private let stubLabel = UILabel()
+    private let stubLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Что будем отслеживать?"
+        label.font = .systemFont(ofSize: 12)
+        label.textAlignment = .center
+        return label
+    }()
+
     private let datePicker: UIDatePicker = {
         let datePicker = UIDatePicker()
         datePicker.datePickerMode = .date
         datePicker.preferredDatePickerStyle = .compact
         return datePicker
     }()
+
     private lazy var datePickerButton: UIBarButtonItem = {
         return UIBarButtonItem(customView: datePicker)
     }()
+
     private lazy var addButton: UIBarButtonItem = {
         let plusButton = UIBarButtonItem(
             image: UIImage(resource: .addTracker),
@@ -60,9 +73,9 @@ final class TrackersListViewController: UIViewController {
         datePicker.addTarget(self, action: #selector(dateChanged), for: .valueChanged)
         isTrackersEmpty = true
 
-//        addTracker(Tracker(title: "Поливать растения", color: UIColor(resource: .CS_18), emoji: "😪"), to: "Test")
-//        addTracker(Tracker(title: "Бокс", color: UIColor(resource: .CS_8), emoji: "🥊"), to: "Test")
-//        addTracker(Tracker(title: "Программировать", color: UIColor(resource: .CS_10), emoji: "💻"), to: "Test")
+        addTracker(Tracker(title: "Поливать растения", color: UIColor(resource: .CS_18), emoji: "😪"), to: "Test")
+        addTracker(Tracker(title: "Бокс", color: UIColor(resource: .CS_8), emoji: "🥊"), to: "Test")
+        addTracker(Tracker(title: "Программировать", color: UIColor(resource: .CS_10), emoji: "💻"), to: "Test")
     }
 
     // MARK: - Public methods
@@ -97,7 +110,7 @@ final class TrackersListViewController: UIViewController {
         completedTrackers.contains { $0.trackerID == tracker.id && $0.date == selectedDate }
     }
 
-    // MARK: - UI methods
+    // MARK: - Private methods
     @objc private func dateChanged() { }
 
     private func configureNavBar() {
@@ -116,10 +129,6 @@ final class TrackersListViewController: UIViewController {
         searchField.backgroundColor = UIColor(resource: .ypSearchFieldBackground)
 
         stubImage.contentMode = .scaleAspectFit
-
-        stubLabel.text = "Что будем отслеживать?"
-        stubLabel.font = .systemFont(ofSize: 12)
-        stubLabel.textAlignment = .center
     }
 
     private func layoutUI() {
@@ -149,7 +158,7 @@ final class TrackersListViewController: UIViewController {
         ])
     }
 
-    // MARK: - Private methods
+    // MARK: - Actions
     @objc private func addTrackerTapped() {
         print("tapped")
     }
@@ -161,7 +170,7 @@ extension TrackersListViewController: UICollectionViewDataSource {
         if categories.isEmpty { return 0 }
         return categories[section].trackers.count
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let tracker = categories[indexPath.section].trackers[indexPath.row]
 
@@ -172,7 +181,18 @@ extension TrackersListViewController: UICollectionViewDataSource {
             return UICollectionViewCell()
         }
 
-        cell.configureCell(tracker: tracker, completedDays: 2, isCompleted: isTrackerCompleted(tracker), currentDate: Date())
+        cell.configureCell(tracker: tracker, completedDays: 2, isCompleted: isTrackerCompleted(tracker), currentDate: selectedDate)
+
+        cell.onTap = { [weak self] record in
+            guard let self else { return }
+
+            if let index = self.completedTrackers.firstIndex(of: record) {
+                self.completedTrackers.remove(at: index)
+            } else {
+                self.completedTrackers.append(record)
+            }
+            print(completedTrackers)
+        }
         return cell
     }
 }

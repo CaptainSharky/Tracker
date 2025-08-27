@@ -33,6 +33,34 @@ final class NewHabitViewController: UIViewController {
         return tableView
     }()
 
+    private let cancelButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("Отменить", for: .normal)
+        button.setTitleColor(UIColor(resource: .ypRed), for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 16)
+        button.layer.cornerRadius = 16
+        button.layer.borderWidth = 1
+        button.layer.borderColor = UIColor(resource: .ypRed).cgColor
+        return button
+    }()
+
+    private let createButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("Создать", for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 16)
+        button.layer.cornerRadius = 16
+        button.backgroundColor = UIColor(resource: .ypGray)
+        button.isEnabled = false
+        return button
+    }()
+
+    private var isCreateButtonEnabled: Bool = false {
+        didSet {
+            let color = isCreateButtonEnabled ? UIColor(resource: .ypBlackDay) : UIColor(resource: .ypGray)
+            createButton.backgroundColor = color
+        }
+    }
+
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -41,12 +69,13 @@ final class NewHabitViewController: UIViewController {
         settingsTableView.dataSource = self
 
         layoutUI()
-        view.backgroundColor = UIColor(resource: .ypWhiteDay)
     }
 
     // MARK: - Private methods
     private func layoutUI() {
-        [titleLabel, nameTextField, settingsTableView].forEach {
+        view.backgroundColor = UIColor(resource: .ypWhiteDay)
+
+        [titleLabel, nameTextField, settingsTableView, cancelButton, createButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
@@ -61,11 +90,20 @@ final class NewHabitViewController: UIViewController {
             settingsTableView.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 24),
             settingsTableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             settingsTableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
-            settingsTableView.heightAnchor.constraint(equalToConstant: 150)
+            settingsTableView.heightAnchor.constraint(equalToConstant: 150),
+            cancelButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
+            cancelButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            cancelButton.heightAnchor.constraint(equalToConstant: 60),
+            cancelButton.trailingAnchor.constraint(equalTo: createButton.leadingAnchor, constant: -8),
+            createButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
+            createButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            createButton.heightAnchor.constraint(equalToConstant: 60),
+            createButton.widthAnchor.constraint(equalTo: cancelButton.widthAnchor)
         ])
     }
 }
 
+// MARK: - UITableViewDelegate protocol
 extension NewHabitViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
@@ -82,6 +120,7 @@ extension NewHabitViewController: UITableViewDelegate {
     }
 }
 
+// MARK: - UITableViewDataSource protocol
 extension NewHabitViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return SettingsRow.allCases.count

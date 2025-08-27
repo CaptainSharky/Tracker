@@ -111,7 +111,8 @@ final class TrackersListViewController: UIViewController {
     }
 
     // MARK: - Private methods
-    @objc private func dateChanged() { }
+    @objc
+    private func dateChanged() { }
 
     private func configureNavBar() {
         title = "Трекеры"
@@ -132,7 +133,7 @@ final class TrackersListViewController: UIViewController {
     }
 
     private func layoutUI() {
-        [searchField, datePicker, stubImage, stubLabel, trackersCollectionView].forEach {
+        [searchField, stubImage, stubLabel, trackersCollectionView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
@@ -159,8 +160,10 @@ final class TrackersListViewController: UIViewController {
     }
 
     // MARK: - Actions
-    @objc private func addTrackerTapped() {
+    @objc
+    private func addTrackerTapped() {
         print("tapped")
+        present(NewHabitViewController(), animated: true)
     }
 }
 

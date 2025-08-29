@@ -162,8 +162,8 @@ final class TrackersListViewController: UIViewController {
     // MARK: - Actions
     @objc
     private func addTrackerTapped() {
-        print("tapped")
-        present(NewHabitViewController(), animated: true)
+        let newHabitViewController = NewHabitViewController()
+        present(newHabitViewController, animated: true)
     }
 }
 

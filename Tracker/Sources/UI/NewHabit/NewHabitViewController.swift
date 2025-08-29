@@ -1,6 +1,8 @@
 import UIKit
 
 final class NewHabitViewController: UIViewController {
+    private var selectedWeekdays = Set<Weekday>()
+
     // MARK: - UI properties
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -33,7 +35,7 @@ final class NewHabitViewController: UIViewController {
         return tableView
     }()
 
-    private let cancelButton: UIButton = {
+    private lazy var cancelButton: UIButton = {
         let button = UIButton()
         button.setTitle("Отменить", for: .normal)
         button.setTitleColor(UIColor(resource: .ypRed), for: .normal)
@@ -41,6 +43,7 @@ final class NewHabitViewController: UIViewController {
         button.layer.cornerRadius = 16
         button.layer.borderWidth = 1
         button.layer.borderColor = UIColor(resource: .ypRed).cgColor
+        button.addTarget(self, action: #selector(cancelCreating), for: .touchUpInside)
         return button
     }()
 
@@ -72,6 +75,20 @@ final class NewHabitViewController: UIViewController {
     }
 
     // MARK: - Private methods
+    private func scheduleSummary(days: Set<Weekday>) -> String {
+        guard !days.isEmpty else { return "Не выбрано"}
+        if days.count == 7 { return "Каждый день" }
+
+        return days.sorted { $0.rawValue < $1.rawValue }
+            .map { $0.shortTitle }
+            .joined(separator: ", ")
+    }
+
+    @objc
+    private func cancelCreating() {
+        dismiss(animated: true)
+    }
+
     private func layoutUI() {
         view.backgroundColor = UIColor(resource: .ypWhiteDay)
 
@@ -112,8 +129,13 @@ extension NewHabitViewController: UITableViewDelegate {
             // открыть категории
             break
         case .schedule:
-            // открыть расписание
-            break
+            let scheduleViewController = ScheduleViewController(selectedDays: selectedWeekdays)
+            scheduleViewController.onDone = { [weak self] days in
+                self?.selectedWeekdays = days
+                let index = IndexPath(row: SettingsRow.schedule.rawValue, section: 0)
+                self?.settingsTableView.reloadRows(at: [index], with: .none)
+            }
+            present(scheduleViewController, animated: true)
         case .none:
             break
         }
@@ -133,6 +155,7 @@ extension NewHabitViewController: UITableViewDataSource {
         var config = cell.defaultContentConfiguration()
         config.text = row?.title
         config.textProperties.font = .systemFont(ofSize: 17)
+        if row == .schedule { config.secondaryText = scheduleSummary(days: selectedWeekdays) }
         cell.contentConfiguration = config
 
         cell.accessoryType = .disclosureIndicator

@@ -2,6 +2,7 @@ import UIKit
 
 final class NewHabitViewController: UIViewController {
     private var selectedWeekdays = Set<Weekday>()
+    private let nameLimit = 38
 
     // MARK: - UI properties
     private let titleLabel: UILabel = {
@@ -11,17 +12,25 @@ final class NewHabitViewController: UIViewController {
         return label
     }()
 
-    private let nameTextField: UITextField = {
-        let textField = UITextField()
+    private lazy var nameTextField: CustomTextField = {
+        let textField = CustomTextField()
         textField.font = .systemFont(ofSize: 17)
         textField.placeholder = "Введите название трекера"
         textField.backgroundColor = UIColor(resource: .ypBackground)
         textField.layer.cornerRadius = 16
-
-        let padding = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
-        textField.leftView = padding
-        textField.leftViewMode = .always
+        textField.clearButtonMode = .whileEditing
+        textField.returnKeyType = .done
+        textField.addTarget(self, action: #selector(nameEditingChanged), for: .editingChanged)
         return textField
+    }()
+
+    private let limitLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Ограничение 38 символов"
+        label.font = .systemFont(ofSize: 17)
+        label.textColor = UIColor(resource: .ypRed)
+        label.isHidden = true
+        return label
     }()
 
     private let settingsTableView: UITableView = {
@@ -71,12 +80,13 @@ final class NewHabitViewController: UIViewController {
         settingsTableView.delegate = self
         settingsTableView.dataSource = self
 
+        nameTextField.delegate = self
+
         layoutUI()
     }
 
     // MARK: - Private methods
     private func scheduleSummary(days: Set<Weekday>) -> String {
-        guard !days.isEmpty else { return "Не выбрано"}
         if days.count == 7 { return "Каждый день" }
 
         return days.sorted { $0.rawValue < $1.rawValue }
@@ -89,10 +99,16 @@ final class NewHabitViewController: UIViewController {
         dismiss(animated: true)
     }
 
+    @objc
+    private func nameEditingChanged() {
+        let count = nameTextField.text?.count ?? 0
+        limitLabel.isHidden = count < nameLimit
+    }
+
     private func layoutUI() {
         view.backgroundColor = UIColor(resource: .ypWhiteDay)
 
-        [titleLabel, nameTextField, settingsTableView, cancelButton, createButton].forEach {
+        [titleLabel, nameTextField, limitLabel, settingsTableView, cancelButton, createButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
@@ -104,7 +120,9 @@ final class NewHabitViewController: UIViewController {
             nameTextField.heightAnchor.constraint(equalToConstant: 75),
             nameTextField.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             nameTextField.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
-            settingsTableView.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 24),
+            limitLabel.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 8),
+            limitLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            settingsTableView.topAnchor.constraint(equalTo: limitLabel.bottomAnchor, constant: 32),
             settingsTableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             settingsTableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
             settingsTableView.heightAnchor.constraint(equalToConstant: 150),
@@ -155,7 +173,11 @@ extension NewHabitViewController: UITableViewDataSource {
         var config = cell.defaultContentConfiguration()
         config.text = row?.title
         config.textProperties.font = .systemFont(ofSize: 17)
-        if row == .schedule { config.secondaryText = scheduleSummary(days: selectedWeekdays) }
+        if row == .schedule, !selectedWeekdays.isEmpty {
+            config.secondaryText = scheduleSummary(days: selectedWeekdays)
+            config.secondaryTextProperties.color = UIColor(resource: .ypGray)
+            config.secondaryTextProperties.font = .systemFont(ofSize: 17)
+        }
         cell.contentConfiguration = config
 
         cell.accessoryType = .disclosureIndicator
@@ -165,6 +187,36 @@ extension NewHabitViewController: UITableViewDataSource {
             cell.separatorInset = UIEdgeInsets(top: 0, left: tableView.bounds.width, bottom: 0, right: 0)
         }
         return cell
+    }
+}
+
+extension NewHabitViewController: UITextFieldDelegate {
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        if string.rangeOfCharacter(from: .newlines) != nil { return false }
+
+        let current = textField.text ?? ""
+        guard let range = Range(range, in: current) else { return false }
+        let updated = current.replacingCharacters(in: range, with: string)
+
+        if updated.count > nameLimit { return false }
+        return true
+    }
+
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        return true
+    }
+}
+
+final class CustomTextField: UITextField {
+    var clearPadding: CGFloat = 12
+    var textInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+
+    override func textRect(forBounds bounds: CGRect) -> CGRect { bounds.inset(by: textInsets) }
+    override func editingRect(forBounds bounds: CGRect) -> CGRect { bounds.inset(by: textInsets) }
+    override func placeholderRect(forBounds bounds: CGRect) -> CGRect { bounds.inset(by: textInsets) }
+    override func clearButtonRect(forBounds bounds: CGRect) -> CGRect {
+        super.clearButtonRect(forBounds: bounds).offsetBy(dx: -clearPadding, dy: 0)
     }
 }
 

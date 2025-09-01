@@ -40,6 +40,7 @@ final class TrackersListViewController: UIViewController {
         let searchField = UISearchTextField()
         searchField.placeholder = "Поиск"
         searchField.backgroundColor = UIColor(resource: .ypSearchFieldBackground)
+        searchField.returnKeyType = .done
         return searchField
     }()
 
@@ -96,6 +97,7 @@ final class TrackersListViewController: UIViewController {
         layoutUI()
 
         datePicker.addTarget(self, action: #selector(dateChanged), for: .valueChanged)
+        searchField.delegate = self
         view.backgroundColor = UIColor(resource: .ypWhiteDay)
         isTrackersEmpty = true
 
@@ -238,7 +240,6 @@ extension TrackersListViewController: UICollectionViewDataSource {
             guard let self else { return }
             self.toggleRecord(record)
             self.trackersCollectionView.reloadItems(at: [indexPath])
-            print(filteredCategories)
         }
         return cell
     }
@@ -278,5 +279,12 @@ extension TrackersListViewController: UICollectionViewDelegateFlowLayout {
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
         return CGSize(width: collectionView.bounds.width, height: 40)
+    }
+}
+
+extension TrackersListViewController: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        return true
     }
 }

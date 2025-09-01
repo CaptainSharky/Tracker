@@ -6,6 +6,14 @@ final class NewHabitViewController: UIViewController {
     var create: ((Tracker) -> Void)?
 
     // MARK: - UI properties
+    private let scrollView: UIScrollView = {
+        let view = UIScrollView()
+        view.keyboardDismissMode = .interactive
+        return view
+    }()
+
+    private let contentView = UIView()
+
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Новая привычка"
@@ -76,6 +84,9 @@ final class NewHabitViewController: UIViewController {
         }
     }
 
+    private var tableTopToLabel: NSLayoutConstraint?
+    private var tableTopToTextField: NSLayoutConstraint?
+
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -84,6 +95,13 @@ final class NewHabitViewController: UIViewController {
         settingsTableView.dataSource = self
 
         nameTextField.delegate = self
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleKeyboard(_:)),
+            name: UIResponder.keyboardWillChangeFrameNotification,
+            object: nil
+        )
 
         layoutUI()
     }
@@ -103,35 +121,67 @@ final class NewHabitViewController: UIViewController {
         isCreateButtonEnabled = hasName && hasDays
     }
 
+    private func updateLimitLayout() {
+        let show = !limitLabel.isHidden
+        tableTopToTextField?.isActive = !show
+        tableTopToLabel?.isActive = show
+        UIView.animate(withDuration: 0.25) {
+            self.view.layoutIfNeeded()
+        }
+    }
+
     private func layoutUI() {
         view.backgroundColor = UIColor(resource: .ypWhiteDay)
 
-        [titleLabel, nameTextField, limitLabel, settingsTableView, cancelButton, createButton].forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            view.addSubview($0)
-        }
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(scrollView)
+        scrollView.addSubview(contentView)
 
         NSLayoutConstraint.activate([
-            titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            contentView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+            contentView.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor)
+        ])
+
+        [titleLabel, nameTextField, limitLabel, settingsTableView, cancelButton, createButton].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            contentView.addSubview($0)
+        }
+
+        tableTopToLabel = settingsTableView.topAnchor.constraint(equalTo: limitLabel.bottomAnchor, constant: 32)
+        tableTopToTextField = settingsTableView.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 24)
+        tableTopToTextField?.isActive = true
+
+        NSLayoutConstraint.activate([
+            titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
             nameTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
             nameTextField.heightAnchor.constraint(equalToConstant: 75),
-            nameTextField.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-            nameTextField.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            nameTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            nameTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             limitLabel.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 8),
-            limitLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            settingsTableView.topAnchor.constraint(equalTo: limitLabel.bottomAnchor, constant: 32),
-            settingsTableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-            settingsTableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            limitLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            // settingsTableView.topAnchor.constraint(equalTo: limitLabel.bottomAnchor, constant: 32),
+            settingsTableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            settingsTableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             settingsTableView.heightAnchor.constraint(equalToConstant: 150),
-            cancelButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
-            cancelButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            cancelButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            cancelButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
             cancelButton.heightAnchor.constraint(equalToConstant: 60),
             cancelButton.trailingAnchor.constraint(equalTo: createButton.leadingAnchor, constant: -8),
-            createButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
-            createButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            createButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             createButton.heightAnchor.constraint(equalToConstant: 60),
-            createButton.widthAnchor.constraint(equalTo: cancelButton.widthAnchor)
+            createButton.widthAnchor.constraint(equalTo: cancelButton.widthAnchor),
+            createButton.topAnchor.constraint(greaterThanOrEqualTo: settingsTableView.bottomAnchor, constant: 24),
+            createButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
         ])
     }
 
@@ -146,6 +196,7 @@ final class NewHabitViewController: UIViewController {
         let count = nameTextField.text?.count ?? 0
         limitLabel.isHidden = count < nameLimit
         updateCreateButtonState()
+        updateLimitLayout()
     }
 
     @objc
@@ -159,6 +210,29 @@ final class NewHabitViewController: UIViewController {
         let tracker = Tracker(title: title, color: color, emoji: emoji, schedule: selectedWeekdays)
         create?(tracker)
         dismiss(animated: true)
+    }
+
+    @objc
+    private func handleKeyboard(_ note: Notification) {
+        guard
+            let userInfo = note.userInfo,
+            let endFrame = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect),
+            let duration = (userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double),
+            let curveRaw = (userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt)
+        else { return }
+
+        let endInView = view.convert(endFrame, from: nil)
+        let overlap = max(0, view.bounds.maxY - endInView.origin.y)
+        let insets = UIEdgeInsets(top: 0, left: 0, bottom: overlap, right: 0)
+
+        UIView.animate(
+            withDuration: duration,
+            delay: 0,
+            options: UIView.AnimationOptions(rawValue: curveRaw << 16),
+            animations: {
+                self.scrollView.contentInset = insets
+                self.scrollView.scrollIndicatorInsets = insets
+            })
     }
 }
 

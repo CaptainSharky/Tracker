@@ -82,6 +82,7 @@ final class TrackersListViewController: UIViewController {
         let layout = UICollectionViewFlowLayout()
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.register(TrackerViewCell.self, forCellWithReuseIdentifier: TrackerViewCell.cellIdentifier)
+        collectionView.register(CategoryView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "header")
         collectionView.dataSource = self
         collectionView.delegate = self
         return collectionView
@@ -98,9 +99,9 @@ final class TrackersListViewController: UIViewController {
         view.backgroundColor = UIColor(resource: .ypWhiteDay)
         isTrackersEmpty = true
 
-        addTracker(Tracker(title: "Поливать растения", color: UIColor(resource: .CS_18), emoji: "😪", schedule: Set(arrayLiteral: .monday, .tuesday)), to: "Test")
-        addTracker(Tracker(title: "Бокс", color: UIColor(resource: .CS_8), emoji: "🥊", schedule: Set(arrayLiteral: .wednesday, .thursday, .friday)), to: "Test")
-        addTracker(Tracker(title: "Программировать", color: UIColor(resource: .CS_10), emoji: "💻", schedule: Set(arrayLiteral: .saturday, .sunday)), to: "Test")
+        addTracker(Tracker(title: "Поливать растения", color: UIColor(resource: .CS_18), emoji: "😪", schedule: Set(arrayLiteral: .monday, .tuesday, .thursday)), to: "Домашний уют")
+        addTracker(Tracker(title: "Бокс", color: UIColor(resource: .CS_8), emoji: "🥊", schedule: Set(arrayLiteral: .wednesday, .thursday, .friday)), to: "Спорт")
+        addTracker(Tracker(title: "Программировать", color: UIColor(resource: .CS_10), emoji: "💻", schedule: Set(arrayLiteral: .saturday, .sunday)), to: "Хобби")
 
         dateChanged()
     }
@@ -259,5 +260,23 @@ extension TrackersListViewController: UICollectionViewDelegateFlowLayout {
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 16
+    }
+
+    // MARK: Supplementary View (Header)
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        guard let view = collectionView.dequeueReusableSupplementaryView(
+            ofKind: kind,
+            withReuseIdentifier: "header",
+            for: indexPath
+        ) as? CategoryView else {
+            return UICollectionReusableView()
+        }
+        let title = filteredCategories[indexPath.section].title
+        view.titleLabel.text = title
+        return view
+    }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+        return CGSize(width: collectionView.bounds.width, height: 40)
     }
 }

@@ -3,6 +3,7 @@ import UIKit
 final class NewHabitViewController: UIViewController {
     private var selectedWeekdays = Set<Weekday>()
     private let nameLimit = 38
+    var create: ((Tracker) -> Void)?
 
     // MARK: - UI properties
     private let titleLabel: UILabel = {
@@ -56,18 +57,20 @@ final class NewHabitViewController: UIViewController {
         return button
     }()
 
-    private let createButton: UIButton = {
+    private lazy var createButton: UIButton = {
         let button = UIButton()
         button.setTitle("Создать", for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16)
         button.layer.cornerRadius = 16
         button.backgroundColor = UIColor(resource: .ypGray)
         button.isEnabled = false
+        button.addTarget(self, action: #selector(createTapped), for: .touchUpInside)
         return button
     }()
 
     private var isCreateButtonEnabled: Bool = false {
         didSet {
+            createButton.isEnabled = isCreateButtonEnabled
             let color = isCreateButtonEnabled ? UIColor(resource: .ypBlackDay) : UIColor(resource: .ypGray)
             createButton.backgroundColor = color
         }
@@ -94,15 +97,10 @@ final class NewHabitViewController: UIViewController {
             .joined(separator: ", ")
     }
 
-    @objc
-    private func cancelCreating() {
-        dismiss(animated: true)
-    }
-
-    @objc
-    private func nameEditingChanged() {
-        let count = nameTextField.text?.count ?? 0
-        limitLabel.isHidden = count < nameLimit
+    private func updateCreateButtonState() {
+        let hasName = !(nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+        let hasDays = !selectedWeekdays.isEmpty
+        isCreateButtonEnabled = hasName && hasDays
     }
 
     private func layoutUI() {
@@ -136,6 +134,32 @@ final class NewHabitViewController: UIViewController {
             createButton.widthAnchor.constraint(equalTo: cancelButton.widthAnchor)
         ])
     }
+
+    // MARK: - Actions
+    @objc
+    private func cancelCreating() {
+        dismiss(animated: true)
+    }
+
+    @objc
+    private func nameEditingChanged() {
+        let count = nameTextField.text?.count ?? 0
+        limitLabel.isHidden = count < nameLimit
+        updateCreateButtonState()
+    }
+
+    @objc
+    private func createTapped() {
+        guard isCreateButtonEnabled else { return }
+
+        let title = nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let color = UIColor(resource: .CS_1)
+        let emoji = "😛"
+
+        let tracker = Tracker(title: title, color: color, emoji: emoji, schedule: selectedWeekdays)
+        create?(tracker)
+        dismiss(animated: true)
+    }
 }
 
 // MARK: - UITableViewDelegate protocol
@@ -152,6 +176,7 @@ extension NewHabitViewController: UITableViewDelegate {
                 self?.selectedWeekdays = days
                 let index = IndexPath(row: SettingsRow.schedule.rawValue, section: 0)
                 self?.settingsTableView.reloadRows(at: [index], with: .none)
+                self?.updateCreateButtonState()
             }
             present(scheduleViewController, animated: true)
         case .none:

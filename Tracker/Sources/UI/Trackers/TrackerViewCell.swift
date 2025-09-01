@@ -62,7 +62,7 @@ final class TrackerViewCell: UICollectionViewCell {
 
         setupUI()
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -138,15 +138,16 @@ final class TrackerViewCell: UICollectionViewCell {
     private func daysCountFormatted(daysCount: Int) -> String {
         var daysCountText = String(daysCount)
 
-        switch daysCount % 10 {
-        case 11...19:
-            daysCountText += " дней"
-        case 1:
-            daysCountText += " день"
-        case 2...4:
-            daysCountText += " дня"
-        default:
-            daysCountText += " дней"
+        if (11...14).contains(daysCount % 100) { daysCountText += " дней" }
+        else {
+            switch daysCount % 10 {
+            case 1:
+                daysCountText += " день"
+            case 2...4:
+                daysCountText += " дня"
+            default:
+                daysCountText += " дней"
+            }
         }
         return daysCountText
     }

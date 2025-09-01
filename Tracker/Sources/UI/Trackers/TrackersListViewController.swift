@@ -248,7 +248,7 @@ extension TrackersListViewController: UICollectionViewDataSource {
 // MARK: - UICollectionViewDelegateFlowLayout protocol
 extension TrackersListViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: (collectionView.bounds.width - 16 * 2 - 9) / 2, height: 148)
+        return CGSize(width: (collectionView.bounds.width - 41) / 2, height: 148)
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
@@ -260,7 +260,7 @@ extension TrackersListViewController: UICollectionViewDelegateFlowLayout {
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 16
+        return 0
     }
 
     // MARK: Supplementary View (Header)

@@ -111,6 +111,7 @@ extension ScheduleViewController: UITableViewDataSource {
         }
         button.tag = indexPath.row
         button.isOn = selectedDays.contains(day)
+        button.onTintColor = UIColor(resource: .ypBlue)
 
         if indexPath.row == Weekday.allCases.count - 1 {
             cell.separatorInset = UIEdgeInsets(top: 0, left: tableView.bounds.width, bottom: 0, right: 0)

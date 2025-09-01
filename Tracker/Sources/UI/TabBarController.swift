@@ -22,5 +22,14 @@ final class TabBarController: UITabBarController {
             selectedImage: nil
         )
         viewControllers = [trackersNav, statsNav]
+
+        configureUI()
+    }
+
+    private func configureUI() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.shadowColor = .separator
+        tabBar.scrollEdgeAppearance = appearance
     }
 }

@@ -83,7 +83,7 @@ final class TrackersListViewController: UIViewController {
         let layout = UICollectionViewFlowLayout()
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.register(TrackerViewCell.self, forCellWithReuseIdentifier: TrackerViewCell.cellIdentifier)
-        collectionView.register(CategoryView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "header")
+        collectionView.register(CategoryView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: CategoryView.identifier)
         collectionView.dataSource = self
         collectionView.delegate = self
         return collectionView
@@ -267,13 +267,13 @@ extension TrackersListViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         guard let view = collectionView.dequeueReusableSupplementaryView(
             ofKind: kind,
-            withReuseIdentifier: "header",
+            withReuseIdentifier: CategoryView.identifier,
             for: indexPath
         ) as? CategoryView else {
             return UICollectionReusableView()
         }
         let title = filteredCategories[indexPath.section].title
-        view.titleLabel.text = title
+        view.configure(title: title)
         return view
     }
 

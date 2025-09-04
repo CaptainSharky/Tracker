@@ -1,7 +1,7 @@
 import UIKit
 
-final class CategoryView: UICollectionReusableView {
-    static let identifier = "header"
+final class CustomizationType: UICollectionReusableView {
+    static let identifier = "customizationHeader"
     
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -21,15 +21,15 @@ final class CategoryView: UICollectionReusableView {
     func configure(title: String) {
         titleLabel.text = title
     }
-
+    
     private func layoutUI() {
         addSubview(titleLabel)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 28),
             titleLabel.topAnchor.constraint(equalTo: topAnchor),
-            titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor)
+            titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
+            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 28)
         ])
     }
 }

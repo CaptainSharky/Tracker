@@ -219,7 +219,7 @@ extension TrackersListViewController: UICollectionViewDataSource {
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let tracker = filteredCategories[indexPath.section].trackers[indexPath.row]
+        let tracker = filteredCategories[indexPath.section].trackers[indexPath.item]
         let doneCount = completionCountByTracker[tracker.id] ?? 0
 
         guard let cell = collectionView.dequeueReusableCell(

@@ -64,6 +64,7 @@ final class NewHabitViewController: UIViewController {
         collectionView.register(CategoryView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: CategoryView.identifier)
         collectionView.dataSource = self
         collectionView.delegate = self
+        collectionView.allowsMultipleSelection = true
         return collectionView
     }()
 
@@ -100,6 +101,8 @@ final class NewHabitViewController: UIViewController {
 
     private var tableTopToLabel: NSLayoutConstraint?
     private var tableTopToTextField: NSLayoutConstraint?
+    private var selectedEmojiIndex: Int?
+    private var selectedColorIndex: Int?
 
     private let emojies = [
         "🙂", "😻", "🌺", "🐶", "❤️", "😱", "😇", "😡", "🥶",
@@ -137,7 +140,9 @@ final class NewHabitViewController: UIViewController {
     private func updateCreateButtonState() {
         let hasName = !(nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
         let hasDays = !selectedWeekdays.isEmpty
-        isCreateButtonEnabled = hasName && hasDays
+        let hasEmoji = selectedEmojiIndex != nil
+        let hasColor = selectedColorIndex != nil
+        isCreateButtonEnabled = hasName && hasDays && hasEmoji && hasColor
     }
 
     private func updateLimitLayout() {
@@ -230,10 +235,11 @@ final class NewHabitViewController: UIViewController {
     @objc
     private func createTapped() {
         guard isCreateButtonEnabled else { return }
+        guard let selectedEmojiIndex, let selectedColorIndex else { return }
 
         let title = nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let color = UIColor(resource: .CS_1)
-        let emoji = "😛"
+        let emoji = emojies[selectedEmojiIndex]
+        let color = colors[selectedColorIndex]
 
         let tracker = Tracker(title: title, color: color, emoji: emoji, schedule: selectedWeekdays)
         create?(tracker)
@@ -332,6 +338,7 @@ extension NewHabitViewController: UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let stubCell = UICollectionViewCell()
+
         switch CustomizationSection(rawValue: indexPath.section) {
         case .emojies:
             guard let cell = collectionView.dequeueReusableCell(
@@ -340,9 +347,16 @@ extension NewHabitViewController: UICollectionViewDataSource {
             ) as? EmojiViewCell else {
                 return stubCell
             }
-            let emoji = emojies[indexPath.row]
+            let emoji = emojies[indexPath.item]
             cell.configure(emoji: emoji)
+
+            if selectedEmojiIndex == indexPath.item {
+                collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+            } else {
+                collectionView.deselectItem(at: indexPath, animated: false)
+            }
             return cell
+
         case .colors:
             guard let cell = collectionView.dequeueReusableCell(
                 withReuseIdentifier: ColorViewCell.identifier,
@@ -350,9 +364,16 @@ extension NewHabitViewController: UICollectionViewDataSource {
             ) as? ColorViewCell else {
                 return stubCell
             }
-            let color = colors[indexPath.row]
+            let color = colors[indexPath.item]
             cell.configure(color: color)
+
+            if selectedColorIndex == indexPath.item {
+                collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+            } else {
+                collectionView.deselectItem(at: indexPath, animated: false)
+            }
             return cell
+
         case .none:
             break
         }
@@ -366,6 +387,7 @@ extension NewHabitViewController: UICollectionViewDataSource {
 
 // MARK: - UICollectionViewDelegateFlowLayout protocol
 extension NewHabitViewController: UICollectionViewDelegateFlowLayout {
+    // MARK: Размеры ячеек
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let available = collectionView.bounds.width - 18 * 2 - 5 * 5
         let side = floor(available / 6)
@@ -384,7 +406,41 @@ extension NewHabitViewController: UICollectionViewDelegateFlowLayout {
         return 0
     }
 
-    // MARK: - Supplementary View (header)
+    // MARK: Выделение ячеек
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        switch CustomizationSection(rawValue: indexPath.section) {
+
+        case .emojies:
+            if let prev = selectedEmojiIndex, prev != indexPath.item {
+                collectionView.deselectItem(at: IndexPath(item: prev, section: indexPath.section), animated: true)
+            }
+            selectedEmojiIndex = indexPath.item
+
+        case .colors:
+            if let prev = selectedColorIndex, prev != indexPath.item {
+                collectionView.deselectItem(at: IndexPath(item: prev, section: indexPath.section), animated: true)
+            }
+            selectedColorIndex = indexPath.item
+
+        case .none:
+            break
+        }
+        updateCreateButtonState()
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
+        switch CustomizationSection(rawValue: indexPath.section) {
+        case .emojies:
+            if selectedEmojiIndex == indexPath.item { selectedEmojiIndex = nil }
+        case .colors:
+            if selectedColorIndex == indexPath.item { selectedColorIndex = nil }
+        case .none:
+            break
+        }
+        updateCreateButtonState()
+    }
+
+    // MARK: Supplementary View (header)
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         guard let view = collectionView.dequeueReusableSupplementaryView(
             ofKind: kind,

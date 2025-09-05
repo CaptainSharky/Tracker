@@ -60,7 +60,7 @@ final class NewHabitViewController: UIViewController {
         let layout = UICollectionViewFlowLayout()
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.register(EmojiViewCell.self, forCellWithReuseIdentifier: EmojiViewCell.identifier)
-        // collectionView.register(ColorViewCell.self, forCellWithReuseIdentifier: ColorViewCell.identifier)
+        collectionView.register(ColorViewCell.self, forCellWithReuseIdentifier: ColorViewCell.identifier)
         collectionView.register(CategoryView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: CategoryView.identifier)
         collectionView.dataSource = self
         collectionView.delegate = self
@@ -104,6 +104,11 @@ final class NewHabitViewController: UIViewController {
     private let emojies = [
         "🙂", "😻", "🌺", "🐶", "❤️", "😱", "😇", "😡", "🥶",
         "🤔", "🙌", "🍔", "🥦", "🏓", "🥇", "🎸", "🏝", "😪"
+    ]
+
+    private let colors: [UIColor] = [
+        .CS_1, .CS_2, .CS_3, .CS_4, .CS_5, .CS_6, .CS_7, .CS_8, .CS_9,
+        .CS_10, .CS_11, .CS_12, .CS_13, .CS_14, .CS_15, .CS_16, .CS_17, .CS_18
     ]
 
     // MARK: - Lifecycle
@@ -315,50 +320,47 @@ extension NewHabitViewController: UITableViewDataSource {
 // MARK: - UICollectionViewDataSource protocol
 extension NewHabitViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-//        switch CustomizationSection(rawValue: section) {
-//        case .emojies:
-//            return emojies.count
-//        case .colors:
-//            return 18
-//        case .none:
-//            return 0
-//        }
-        return emojies.count
+        switch CustomizationSection(rawValue: section) {
+        case .emojies:
+            return emojies.count
+        case .colors:
+            return colors.count
+        case .none:
+            return 0
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-//        switch CustomizationSection(rawValue: indexPath.section) {
-//        case .emojies:
-//            guard let cell = collectionView.dequeueReusableCell(
-//                withReuseIdentifier: EmojiViewCell.identifier,
-//                for: indexPath
-//            ) as? EmojiViewCell else {
-//                return UICollectionViewCell()
-//            }
-//            let emoji = emojies[indexPath.row]
-//            cell.configure(emoji: emoji)
-//            return cell
-//        case .colors:
-//            break
-//        case .none:
-//            break
-//        }
-//        return UICollectionViewCell()
-
-        guard let cell = collectionView.dequeueReusableCell(
-            withReuseIdentifier: EmojiViewCell.identifier,
-            for: indexPath
-        ) as? EmojiViewCell else {
-            return UICollectionViewCell()
+        let stubCell = UICollectionViewCell()
+        switch CustomizationSection(rawValue: indexPath.section) {
+        case .emojies:
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: EmojiViewCell.identifier,
+                for: indexPath
+            ) as? EmojiViewCell else {
+                return stubCell
+            }
+            let emoji = emojies[indexPath.row]
+            cell.configure(emoji: emoji)
+            return cell
+        case .colors:
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: ColorViewCell.identifier,
+                for: indexPath
+            ) as? ColorViewCell else {
+                return stubCell
+            }
+            let color = colors[indexPath.row]
+            cell.configure(color: color)
+            return cell
+        case .none:
+            break
         }
-        let emoji = emojies[indexPath.row]
-        cell.configure(emoji: emoji)
-        return cell
+        return stubCell
     }
 
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        // CustomizationSection.allCases.count
-        1
+        CustomizationSection.allCases.count
     }
 }
 
@@ -375,7 +377,7 @@ extension NewHabitViewController: UICollectionViewDelegateFlowLayout {
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        UIEdgeInsets(top: 18, left: 18, bottom: 18, right: 18)
+        UIEdgeInsets(top: 18, left: 18, bottom: 32, right: 18)
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
@@ -391,7 +393,17 @@ extension NewHabitViewController: UICollectionViewDelegateFlowLayout {
         ) as? CategoryView else {
             return UICollectionReusableView()
         }
-        let title = "Emoji"
+
+        let title: String
+        switch CustomizationSection(rawValue: indexPath.section) {
+        case .emojies:
+            title = "Emoji"
+        case .colors:
+            title = "Цвет"
+        case .none:
+            title = ""
+        }
+
         view.configure(title: title)
         return view
     }

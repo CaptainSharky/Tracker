@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23788.4" systemVersion="24G90" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="TrackerCategoryEntity" representedClassName="TrackerCategoryEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="title" attributeType="String"/>
+        <relationship name="trackers" toMany="YES" deletionRule="Cascade" destinationEntity="TrackerEntity" inverseName="category" inverseEntity="TrackerEntity"/>
+    </entity>
+    <entity name="TrackerEntity" representedClassName="TrackerEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="colorHex" attributeType="String"/>
+        <attribute name="emoji" attributeType="String"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="schedule" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="title" attributeType="String"/>
+        <relationship name="category" maxCount="1" deletionRule="Nullify" destinationEntity="TrackerCategoryEntity" inverseName="trackers" inverseEntity="TrackerCategoryEntity"/>
+        <relationship name="records" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="TrackerRecordEntity" inverseName="tracker" inverseEntity="TrackerRecordEntity"/>
+    </entity>
+    <entity name="TrackerRecordEntity" representedClassName="TrackerRecordEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="tracker" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="TrackerEntity" inverseName="records" inverseEntity="TrackerEntity"/>
+    </entity>
+</model>

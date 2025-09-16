@@ -10,7 +10,7 @@ final class CoreDataStack {
         container = NSPersistentContainer(name: "Trackers")
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
             if let error = error {
-                fatalError("CoreData load error: \(error)")
+                fatalError("[CoreDataStack]: CoreData load error: \(error)")
             }
         })
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy

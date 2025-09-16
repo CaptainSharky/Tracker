@@ -65,11 +65,15 @@ final class TrackersDataProvider: NSObject, TrackersDataProviderProtocol {
         guard let obj = fetchResultsController?.object(at: indexPath) else {
             fatalError("[TrackersDataProvider]: No object at \(indexPath)")
         }
-        let id = obj.value(forKey: "id") as! UUID
-        let title = obj.value(forKey: "title") as! String
-        let colorHex = obj.value(forKey: "colorHex") as! String
-        let emoji = obj.value(forKey: "emoji") as! String
-        let mask = obj.value(forKey: "schedule") as! Int16
+        guard
+            let id = obj.value(forKey: "id") as? UUID,
+            let title = obj.value(forKey: "title") as? String,
+            let colorHex = obj.value(forKey: "colorHex") as? String,
+            let emoji = obj.value(forKey: "emoji") as? String,
+            let mask = obj.value(forKey: "schedule") as? Int16
+        else {
+            fatalError("[TrackersDataProvider]: Wrong properties at \(indexPath)")
+        }
 
         let color = UIColor(hexRGB: colorHex) ?? .black
         let schedule = Weekday.set(from: mask)

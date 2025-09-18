@@ -337,15 +337,13 @@ extension NewHabitViewController: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let stubCell = UICollectionViewCell()
-
         switch CustomizationSection(rawValue: indexPath.section) {
         case .emojies:
             guard let cell = collectionView.dequeueReusableCell(
                 withReuseIdentifier: EmojiViewCell.identifier,
                 for: indexPath
             ) as? EmojiViewCell else {
-                return stubCell
+                return UICollectionViewCell()
             }
             let emoji = emojies[indexPath.item]
             cell.configure(emoji: emoji)
@@ -362,7 +360,7 @@ extension NewHabitViewController: UICollectionViewDataSource {
                 withReuseIdentifier: ColorViewCell.identifier,
                 for: indexPath
             ) as? ColorViewCell else {
-                return stubCell
+                return UICollectionViewCell()
             }
             let color = colors[indexPath.item]
             cell.configure(color: color)
@@ -377,7 +375,7 @@ extension NewHabitViewController: UICollectionViewDataSource {
         case .none:
             break
         }
-        return stubCell
+        return UICollectionViewCell()
     }
 
     func numberOfSections(in collectionView: UICollectionView) -> Int {

@@ -7,16 +7,16 @@ final class ScheduleViewController: UIViewController {
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Расписание"
-        label.font = .systemFont(ofSize: 16)
+        label.font = .systemFont(ofSize: Constants.fontSize)
         return label
     }()
 
     private let scheduleTableView: UITableView = {
         let tableView = UITableView()
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "dayCell")
-        tableView.rowHeight = 75
-        tableView.layer.cornerRadius = 16
-        tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        tableView.rowHeight = Constants.tvRowHeight
+        tableView.layer.cornerRadius = Constants.cornerRadius
+        tableView.separatorInset = Constants.tvSeparatorInsets
         tableView.isScrollEnabled = false
         tableView.clipsToBounds = true
         return tableView
@@ -25,9 +25,9 @@ final class ScheduleViewController: UIViewController {
     private lazy var doneButton: UIButton = {
         let button = UIButton()
         button.setTitle("Готово", for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 16)
+        button.titleLabel?.font = .systemFont(ofSize: Constants.fontSize)
         button.titleLabel?.textColor = .ypWhiteDay
-        button.layer.cornerRadius = 16
+        button.layer.cornerRadius = Constants.cornerRadius
         button.backgroundColor = UIColor(resource: .ypBlackDay)
         button.addTarget(self, action: #selector(tapDone), for: .touchUpInside)
         return button
@@ -98,7 +98,7 @@ extension ScheduleViewController: UITableViewDataSource {
 
         var config = cell.defaultContentConfiguration()
         config.text = day.title
-        config.textProperties.font = .systemFont(ofSize: 17)
+        config.textProperties.font = .systemFont(ofSize: Constants.tvFontSize)
         cell.contentConfiguration = config
 
         let button: UISwitch
@@ -126,4 +126,14 @@ extension ScheduleViewController: UITableViewDataSource {
 
 extension ScheduleViewController: UITableViewDelegate {
 
+}
+
+extension ScheduleViewController {
+    private enum Constants {
+        static let fontSize: CGFloat = 16
+        static let tvFontSize: CGFloat = 17
+        static let tvRowHeight: CGFloat = 75
+        static let tvSeparatorInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        static let cornerRadius: CGFloat = 16
+    }
 }

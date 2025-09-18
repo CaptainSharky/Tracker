@@ -2,7 +2,7 @@ import UIKit
 
 final class NewHabitViewController: UIViewController {
     private var selectedWeekdays = Set<Weekday>()
-    private let nameLimit = 38
+    private let nameLimit = Constants.trackerNameLimit
     var create: ((Tracker) -> Void)?
 
     // MARK: - UI properties
@@ -17,17 +17,17 @@ final class NewHabitViewController: UIViewController {
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Новая привычка"
-        label.font = .systemFont(ofSize: 16)
+        label.font = .systemFont(ofSize: Constants.fontSize)
         return label
     }()
 
     private lazy var nameTextField: CustomTextField = {
         let textField = CustomTextField()
         textField.delegate = self
-        textField.font = .systemFont(ofSize: 17)
+        textField.font = .systemFont(ofSize: Constants.bigFontSize)
         textField.placeholder = "Введите название трекера"
         textField.backgroundColor = UIColor(resource: .ypBackground)
-        textField.layer.cornerRadius = 16
+        textField.layer.cornerRadius = Constants.cornerRadius
         textField.clearButtonMode = .whileEditing
         textField.returnKeyType = .done
         textField.addTarget(self, action: #selector(nameEditingChanged), for: .editingChanged)
@@ -37,7 +37,7 @@ final class NewHabitViewController: UIViewController {
     private let limitLabel: UILabel = {
         let label = UILabel()
         label.text = "Ограничение 38 символов"
-        label.font = .systemFont(ofSize: 17)
+        label.font = .systemFont(ofSize: Constants.bigFontSize)
         label.textColor = UIColor(resource: .ypRed)
         label.isHidden = true
         return label
@@ -48,9 +48,9 @@ final class NewHabitViewController: UIViewController {
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "settingsCell")
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.rowHeight = 75
-        tableView.layer.cornerRadius = 16
-        tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        tableView.rowHeight = Constants.tvRowHeight
+        tableView.layer.cornerRadius = Constants.cornerRadius
+        tableView.separatorInset = Constants.tvSeparatorInsets
         tableView.isScrollEnabled = false
         tableView.clipsToBounds = true
         return tableView
@@ -72,8 +72,8 @@ final class NewHabitViewController: UIViewController {
         let button = UIButton()
         button.setTitle("Отменить", for: .normal)
         button.setTitleColor(UIColor(resource: .ypRed), for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 16)
-        button.layer.cornerRadius = 16
+        button.titleLabel?.font = .systemFont(ofSize: Constants.fontSize)
+        button.layer.cornerRadius = Constants.cornerRadius
         button.layer.borderWidth = 1
         button.layer.borderColor = UIColor(resource: .ypRed).cgColor
         button.addTarget(self, action: #selector(cancelCreating), for: .touchUpInside)
@@ -83,8 +83,8 @@ final class NewHabitViewController: UIViewController {
     private lazy var createButton: UIButton = {
         let button = UIButton()
         button.setTitle("Создать", for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 16)
-        button.layer.cornerRadius = 16
+        button.titleLabel?.font = .systemFont(ofSize: Constants.fontSize)
+        button.layer.cornerRadius = Constants.cornerRadius
         button.backgroundColor = UIColor(resource: .ypGray)
         button.isEnabled = false
         button.addTarget(self, action: #selector(createTapped), for: .touchUpInside)
@@ -305,11 +305,11 @@ extension NewHabitViewController: UITableViewDataSource {
 
         var config = cell.defaultContentConfiguration()
         config.text = row?.title
-        config.textProperties.font = .systemFont(ofSize: 17)
+        config.textProperties.font = .systemFont(ofSize: Constants.bigFontSize)
         if row == .schedule, !selectedWeekdays.isEmpty {
             config.secondaryText = scheduleSummary(days: selectedWeekdays)
             config.secondaryTextProperties.color = UIColor(resource: .ypGray)
-            config.secondaryTextProperties.font = .systemFont(ofSize: 17)
+            config.secondaryTextProperties.font = .systemFont(ofSize: Constants.bigFontSize)
         }
         cell.contentConfiguration = config
 
@@ -389,17 +389,17 @@ extension NewHabitViewController: UICollectionViewDataSource {
 extension NewHabitViewController: UICollectionViewDelegateFlowLayout {
     // MARK: Размеры ячеек
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let available = collectionView.bounds.width - 18 * 2 - 5 * 5
-        let side = floor(available / 6)
+        let available = collectionView.bounds.width - Constants.cvCellsInsets
+        let side = floor(available / Constants.numberOfCells)
         return CGSize(width: side, height: side)
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        return 5
+        Constants.cvInteritemSpacing
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        UIEdgeInsets(top: 18, left: 18, bottom: 32, right: 18)
+        Constants.cvSectionInsets
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
@@ -465,7 +465,7 @@ extension NewHabitViewController: UICollectionViewDelegateFlowLayout {
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        return CGSize(width: collectionView.bounds.width, height: 30)
+        return CGSize(width: collectionView.bounds.width, height: Constants.cvHeaderHeight)
     }
 }
 
@@ -485,6 +485,23 @@ extension NewHabitViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         return true
+    }
+}
+
+extension NewHabitViewController {
+    private enum Constants {
+        static let fontSize: CGFloat = 16
+        static let bigFontSize: CGFloat = 17
+        static let trackerNameLimit: Int = 38
+        static let cornerRadius: CGFloat = 16
+        static let numberOfCells: CGFloat = 6
+        static let cvInsets: CGFloat = 18
+        static let cvInteritemSpacing: CGFloat = 5
+        static let cvCellsInsets: CGFloat = Constants.cvInsets * 2 + Constants.cvInteritemSpacing * (Constants.numberOfCells - 1)
+        static let cvSectionInsets: UIEdgeInsets = UIEdgeInsets(top: Constants.cvInsets, left: Constants.cvInsets, bottom: 32, right: Constants.cvInsets)
+        static let cvHeaderHeight: CGFloat = 30
+        static let tvSeparatorInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        static let tvRowHeight: CGFloat = 75
     }
 }
 

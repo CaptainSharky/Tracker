@@ -9,7 +9,7 @@ final class ColorViewCell: UICollectionViewCell {
         return view
     }()
 
-    private let selectionView: UIView = {
+    private lazy var selectionView: UIView = {
         let view = UIView()
         view.layer.borderWidth = 3
         view.layer.cornerRadius = 12

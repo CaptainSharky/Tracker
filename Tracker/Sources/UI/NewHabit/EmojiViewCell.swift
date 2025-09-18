@@ -9,7 +9,7 @@ final class EmojiViewCell: UICollectionViewCell {
         return label
     }()
 
-    private let selectionView: UIView = {
+    private lazy var selectionView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor(resource: .ypLightGray)
         view.layer.cornerRadius = 16

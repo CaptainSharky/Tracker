@@ -7,7 +7,7 @@ final class TrackerViewCell: UICollectionViewCell {
     // MARK: - UI properties
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 12, weight: .medium)
+        label.font = .systemFont(ofSize: Constants.fontSize, weight: .medium)
         label.textColor = .white
         label.textAlignment = .left
         return label
@@ -15,14 +15,14 @@ final class TrackerViewCell: UICollectionViewCell {
 
     private let emojiLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 12)
+        label.font = .systemFont(ofSize: Constants.fontSize)
         return label
     }()
 
     private let emojiBackgroundView: UIView = {
         let view = UIView()
-        view.layer.cornerRadius = 12
-        view.backgroundColor = .white.withAlphaComponent(0.3)
+        view.layer.cornerRadius = Constants.emojiCornerRadius
+        view.backgroundColor = .white.withAlphaComponent(Constants.backgroundAlpha)
         view.clipsToBounds = true
         return view
     }()
@@ -30,13 +30,13 @@ final class TrackerViewCell: UICollectionViewCell {
     private let cardView: UIView = {
         let view = UIView()
         view.clipsToBounds = true
-        view.layer.cornerRadius = 16
+        view.layer.cornerRadius = Constants.cardCornerRadius
         return view
     }()
 
     private let daysCountLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 12, weight: .medium)
+        label.font = .systemFont(ofSize: Constants.fontSize, weight: .medium)
         label.textColor = UIColor(resource: .ypBlackDay)
         label.textAlignment = .left
         return label
@@ -44,7 +44,7 @@ final class TrackerViewCell: UICollectionViewCell {
 
     private lazy var doneButton: UIButton = {
         let button = UIButton()
-        button.layer.cornerRadius = 17
+        button.layer.cornerRadius = Constants.buttonCornerRadius
         button.clipsToBounds = true
         button.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
         return button
@@ -127,12 +127,12 @@ final class TrackerViewCell: UICollectionViewCell {
     private func updateDoneButton() {
         let imageName = isCompleted ? "checkmark" : "plus"
         doneButton.setImage(UIImage(systemName: imageName), for: .normal)
-        doneButton.backgroundColor = cardView.backgroundColor?.withAlphaComponent(isCompleted ? 0.3 : 1.0)
+        doneButton.backgroundColor = cardView.backgroundColor?.withAlphaComponent(isCompleted ? Constants.backgroundAlpha : 1.0)
         doneButton.tintColor = UIColor(resource: .ypWhiteDay)
 
         let isNewDay = currentDate > Date()
         doneButton.isEnabled = !isNewDay
-        doneButton.alpha = isNewDay ? 0.3 : 1.0
+        doneButton.alpha = isNewDay ? Constants.backgroundAlpha : 1.0
     }
 
     private func daysCountFormatted(daysCount: Int) -> String {
@@ -163,5 +163,13 @@ final class TrackerViewCell: UICollectionViewCell {
         guard let trackerId else { return }
         let record = TrackerRecord(trackerID: trackerId, date: currentDate)
         onTap?(record)
+    }
+
+    private enum Constants {
+        static let fontSize: CGFloat = 12
+        static let backgroundAlpha: CGFloat = 0.3
+        static let emojiCornerRadius: CGFloat = 12
+        static let cardCornerRadius: CGFloat = 16
+        static let buttonCornerRadius: CGFloat = 17
     }
 }

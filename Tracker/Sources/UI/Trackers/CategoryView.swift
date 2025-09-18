@@ -5,7 +5,7 @@ final class CategoryView: UICollectionReusableView {
     
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 19, weight: .bold)
+        label.font = .systemFont(ofSize: Constants.fontSize, weight: .bold)
         return label
     }()
 
@@ -27,9 +27,14 @@ final class CategoryView: UICollectionReusableView {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 28),
+            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: Constants.labelLeadingInset),
             titleLabel.topAnchor.constraint(equalTo: topAnchor),
             titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
+    }
+
+    private enum Constants {
+        static let fontSize: CGFloat = 19
+        static let labelLeadingInset: CGFloat = 28
     }
 }

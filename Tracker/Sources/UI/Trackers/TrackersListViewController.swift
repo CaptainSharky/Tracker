@@ -41,7 +41,7 @@ final class TrackersListViewController: UIViewController {
     private let stubLabel: UILabel = {
         let label = UILabel()
         label.text = "Что будем отслеживать?"
-        label.font = .systemFont(ofSize: 12)
+        label.font = .systemFont(ofSize: Constants.stubLabelFontSize)
         label.textAlignment = .center
         return label
     }()
@@ -125,7 +125,7 @@ final class TrackersListViewController: UIViewController {
             view.addSubview($0)
         }
 
-        addButton.imageInsets = UIEdgeInsets(top: 0, left: -10, bottom: 0, right: 0)
+        addButton.imageInsets = Constants.addButtonInsets
 
         NSLayoutConstraint.activate([
             searchField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 5),
@@ -202,15 +202,15 @@ extension TrackersListViewController: UICollectionViewDataSource {
 // MARK: - UICollectionViewDelegateFlowLayout protocol
 extension TrackersListViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: (collectionView.bounds.width - 41) / 2, height: 148)
+        return CGSize(width: (collectionView.bounds.width - Constants.cvInsets * 2 - Constants.cvInteritemSpacing) / 2, height: Constants.cvSizeHeight)
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        return 9
+        Constants.cvInteritemSpacing
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        return UIEdgeInsets(top: 0, left: 16, bottom: 16, right: 16)
+        Constants.cvSectionInsets
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
@@ -232,7 +232,7 @@ extension TrackersListViewController: UICollectionViewDelegateFlowLayout {
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        return CGSize(width: collectionView.bounds.width, height: 40)
+        return CGSize(width: collectionView.bounds.width, height: Constants.cvHeaderHeight)
     }
 }
 
@@ -240,5 +240,17 @@ extension TrackersListViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         return true
+    }
+}
+
+extension TrackersListViewController {
+    private enum Constants {
+        static let stubLabelFontSize: CGFloat = 12
+        static let addButtonInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: -10, bottom: 0, right: 0)
+        static let cvInteritemSpacing: CGFloat = 9
+        static let cvInsets: CGFloat = 16
+        static let cvSizeHeight: CGFloat = 148
+        static let cvSectionInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: Constants.cvInsets, bottom: Constants.cvInsets, right: Constants.cvInsets)
+        static let cvHeaderHeight: CGFloat = 40
     }
 }

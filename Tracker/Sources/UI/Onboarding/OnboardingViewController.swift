@@ -1,6 +1,9 @@
 import UIKit
 
 final class OnboardingViewController: UIPageViewController {
+
+    // MARK: - UI Properties
+
     lazy var pages: [PageViewController] = {
         let blue = PageViewController()
         let red = PageViewController()
@@ -32,6 +35,8 @@ final class OnboardingViewController: UIPageViewController {
         return button
     }()
 
+    // MARK: - Lifecycle
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -44,6 +49,8 @@ final class OnboardingViewController: UIPageViewController {
 
         layoutUI()
     }
+
+    // MARK: - Private methods
 
     private func layoutUI() {
         view.addSubview(pageControl)
@@ -59,6 +66,7 @@ final class OnboardingViewController: UIPageViewController {
         ])
     }
 
+    // MARK: - Actions
     @objc
     private func pageControlChanged(_ sender: UIPageControl) {
         let newIndex = sender.currentPage
@@ -79,6 +87,8 @@ final class OnboardingViewController: UIPageViewController {
         dismiss(animated: true)
     }
 }
+
+// MARK: - UIPageViewControllerDataSource protocol
 
 extension OnboardingViewController: UIPageViewControllerDataSource {
     func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
@@ -111,6 +121,8 @@ extension OnboardingViewController: UIPageViewControllerDataSource {
         return pages[nextIndex]
     }
 }
+
+// MARK: - UIPageViewControllerDelegate protocol
 
 extension OnboardingViewController: UIPageViewControllerDelegate {
     func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {

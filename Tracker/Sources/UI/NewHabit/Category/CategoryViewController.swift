@@ -4,6 +4,7 @@ final class CategoryViewController: UIViewController {
 
     private let viewModel: CategoryViewModel
     var onDone: ((String?) -> Void)?
+    private var tableHeightConstraint: NSLayoutConstraint?
 
     private var isCategoriesEmpty: Bool = true {
         didSet {
@@ -34,6 +35,7 @@ final class CategoryViewController: UIViewController {
         tableView.separatorInset = Constants.tvSeparatorInsets
         tableView.isScrollEnabled = true
         tableView.clipsToBounds = true
+        tableView.separatorStyle = .none
         return tableView
     }()
 
@@ -86,8 +88,9 @@ final class CategoryViewController: UIViewController {
 
     // MARK: - Private methods
     private func bind() {
-        viewModel.onCategoriesChanged = { [weak self] in
+        viewModel.onCategoriesChanged = { [weak self] _ in
             self?.categoryTableView.reloadData()
+            self?.updateTableHeight()
         }
         viewModel.onEmptyStateChanged = { [weak self] isEmpty in
             self?.isCategoriesEmpty = isEmpty
@@ -99,6 +102,9 @@ final class CategoryViewController: UIViewController {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
+
+        tableHeightConstraint = categoryTableView.heightAnchor.constraint(equalToConstant: 0)
+        tableHeightConstraint?.isActive = true
 
         NSLayoutConstraint.activate([
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -118,11 +124,16 @@ final class CategoryViewController: UIViewController {
             addCategoryButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -50),
             addCategoryButton.heightAnchor.constraint(equalToConstant: 60),
 
+
             categoryTableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
             categoryTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            categoryTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            categoryTableView.heightAnchor.constraint(equalToConstant: 450)
+            categoryTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
         ])
+    }
+
+    private func updateTableHeight() {
+        categoryTableView.layoutIfNeeded()
+        tableHeightConstraint?.constant = min(categoryTableView.contentSize.height, 450)
     }
 
     // MARK: - Actions

@@ -1,11 +1,13 @@
-final class CategoryViewModel {
-    var onCategoriesChanged: (() -> Void)?
-    var onEmptyStateChanged: ((Bool) -> Void)?
-    var onSelectedChanged: ((String?) -> Void)?
+typealias Binding<T> = (T) -> Void
 
-    private(set) var items: [CategoryModel] = [] {
+final class CategoryViewModel {
+    var onCategoriesChanged: Binding<Void>?
+    var onEmptyStateChanged: Binding<Bool>?
+    var onSelectedChanged: Binding<String?>?
+
+    private(set) var items: [Category] = [] {
         didSet {
-            onCategoriesChanged?()
+            onCategoriesChanged?(())
             onEmptyStateChanged?(items.isEmpty)
         }
     }
@@ -14,16 +16,17 @@ final class CategoryViewModel {
         didSet { onSelectedChanged?(selectedTitle) }
     }
 
-    private let store: TrackerCategoryStore
+    private let model: CategoryModel
 
-    init(store: TrackerCategoryStore = TrackerCategoryStore(), preselectedTitle: String? = nil) {
-        self.store = store
+    init(model: CategoryModel = CategoryModel(), preselectedTitle: String? = nil) {
+        self.model = model
         self.selectedTitle = preselectedTitle
     }
 
     func load() {
-        let titles = (try? store.allTitles()) ?? []
-        items = titles.map { CategoryModel(title: $0, isSelected: $0 == selectedTitle) }
+        items = model.fetchCategories().map {
+            Category(title: $0.title, isSelected: $0.title == selectedTitle)
+        }
     }
 
     func numberOfRows() -> Int { items.count }

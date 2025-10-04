@@ -2,6 +2,7 @@ import UIKit
 
 final class OnboardingViewController: UIPageViewController {
 
+    var onFinish: (() -> Void)?
     // MARK: - UI Properties
 
     lazy var pages: [PageViewController] = {
@@ -84,6 +85,7 @@ final class OnboardingViewController: UIPageViewController {
 
     @objc
     private func buttonTapped() {
+        onFinish?()
         dismiss(animated: true)
     }
 }

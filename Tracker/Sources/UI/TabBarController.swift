@@ -2,7 +2,7 @@ import UIKit
 
 final class TabBarController: UITabBarController {
 
-    private var onboardIsShowed = false
+    private var onboardingStorage = AppLaunchStorage()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -31,12 +31,21 @@ final class TabBarController: UITabBarController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        if !onboardIsShowed {
-            let onboardVC = OnboardingViewController(transitionStyle: .scroll, navigationOrientation: .horizontal)
-            onboardVC.modalPresentationStyle = .fullScreen
-            present(onboardVC, animated: true)
-            onboardIsShowed.toggle()
+        //UserDefaults.standard.removeObject(forKey: "onboarding.hasCompleted")
+
+        guard !onboardingStorage.hasCompletedOnboarding,
+              presentedViewController == nil else { return }
+
+        let onboardVC = OnboardingViewController(
+            transitionStyle: .scroll,
+            navigationOrientation: .horizontal
+        )
+        onboardVC.modalPresentationStyle = .fullScreen
+        onboardVC.onFinish = { [weak self] in
+            self?.onboardingStorage.hasCompletedOnboarding = true
         }
+
+        present(onboardVC, animated: true)
     }
 
     private func configureUI() {

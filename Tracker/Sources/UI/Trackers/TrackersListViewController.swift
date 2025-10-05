@@ -135,6 +135,8 @@ final class TrackersListViewController: UIViewController {
 
             stubImage.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             stubImage.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
+            stubImage.heightAnchor.constraint(equalToConstant: 80),
+            stubImage.widthAnchor.constraint(equalToConstant: 80),
 
             stubLabel.topAnchor.constraint(equalTo: stubImage.bottomAnchor, constant: 8),
             stubLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -150,8 +152,8 @@ final class TrackersListViewController: UIViewController {
     @objc
     private func addTrackerTapped() {
         let newHabitViewController = NewHabitViewController()
-        newHabitViewController.create = { [weak self] tracker in
-            try? self?.trackerStore.create(tracker, inCategory: "Test")
+        newHabitViewController.create = { [weak self] tracker, category in
+            try? self?.trackerStore.create(tracker, inCategory: category)
         }
         present(newHabitViewController, animated: true)
     }

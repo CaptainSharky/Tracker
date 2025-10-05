@@ -2,9 +2,25 @@ import UIKit
 
 final class TabBarController: UITabBarController {
 
+    // MARK: - Private propeties
+    private var onboardingStorage = AppLaunchStorage()
+
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        setupTabs()
+        configureUI()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        showOnboardingIfNeeded()
+    }
+
+    // MARK: - Private methods
+
+    private func setupTabs() {
         let trackersVC = TrackersListViewController()
         let statsVC = StatisticsViewController()
 
@@ -22,8 +38,6 @@ final class TabBarController: UITabBarController {
             selectedImage: nil
         )
         viewControllers = [trackersNav, statsNav]
-
-        configureUI()
     }
 
     private func configureUI() {
@@ -31,5 +45,22 @@ final class TabBarController: UITabBarController {
         appearance.configureWithOpaqueBackground()
         appearance.shadowColor = .separator
         tabBar.scrollEdgeAppearance = appearance
+    }
+
+    private func showOnboardingIfNeeded() {
+        //UserDefaults.standard.removeObject(forKey: "onboarding.hasCompleted")
+        guard !onboardingStorage.hasCompletedOnboarding,
+              presentedViewController == nil else { return }
+
+        let onboardVC = OnboardingViewController(
+            transitionStyle: .scroll,
+            navigationOrientation: .horizontal
+        )
+        onboardVC.modalPresentationStyle = .fullScreen
+        onboardVC.onFinish = { [weak self] in
+            self?.onboardingStorage.hasCompletedOnboarding = true
+        }
+
+        present(onboardVC, animated: true)
     }
 }

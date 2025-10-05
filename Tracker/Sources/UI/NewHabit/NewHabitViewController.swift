@@ -2,8 +2,8 @@ import UIKit
 
 final class NewHabitViewController: UIViewController {
     private var selectedWeekdays = Set<Weekday>()
-    private let nameLimit = Constants.trackerNameLimit
-    var create: ((Tracker) -> Void)?
+    private var selectedCategoryTitle: String?
+    var create: ((Tracker, String) -> Void)?
 
     // MARK: - UI properties
     private let scrollView: UIScrollView = {
@@ -142,7 +142,8 @@ final class NewHabitViewController: UIViewController {
         let hasDays = !selectedWeekdays.isEmpty
         let hasEmoji = selectedEmojiIndex != nil
         let hasColor = selectedColorIndex != nil
-        isCreateButtonEnabled = hasName && hasDays && hasEmoji && hasColor
+        let hasCategory = (selectedCategoryTitle != nil)
+        isCreateButtonEnabled = hasName && hasDays && hasEmoji && hasColor && hasCategory
     }
 
     private func updateLimitLayout() {
@@ -227,7 +228,7 @@ final class NewHabitViewController: UIViewController {
     @objc
     private func nameEditingChanged() {
         let count = nameTextField.text?.count ?? 0
-        limitLabel.isHidden = count < nameLimit
+        limitLabel.isHidden = count < Constants.trackerNameLimit
         updateCreateButtonState()
         updateLimitLayout()
     }
@@ -236,13 +237,14 @@ final class NewHabitViewController: UIViewController {
     private func createTapped() {
         guard isCreateButtonEnabled else { return }
         guard let selectedEmojiIndex, let selectedColorIndex else { return }
+        guard let category = selectedCategoryTitle else { return }
 
         let title = nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let emoji = emojies[selectedEmojiIndex]
         let color = colors[selectedColorIndex]
 
         let tracker = Tracker(title: title, color: color, emoji: emoji, schedule: selectedWeekdays)
-        create?(tracker)
+        create?(tracker, category)
         dismiss(animated: true)
     }
 
@@ -275,9 +277,18 @@ extension NewHabitViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         switch SettingsRow(rawValue: indexPath.row) {
+
         case .category:
-            // открыть категории
-            break
+            let categoryViewController = CategoryViewController(selectedCategory: selectedCategoryTitle)
+            categoryViewController.onDone = { [weak self] title in
+                guard let self else { return }
+                self.selectedCategoryTitle = title
+                let index = IndexPath(row: SettingsRow.category.rawValue, section: 0)
+                self.settingsTableView.reloadRows(at: [index], with: .none)
+                self.updateCreateButtonState()
+            }
+            present(categoryViewController, animated: true)
+
         case .schedule:
             let scheduleViewController = ScheduleViewController(selectedDays: selectedWeekdays)
             scheduleViewController.onDone = { [weak self] days in
@@ -287,6 +298,7 @@ extension NewHabitViewController: UITableViewDelegate {
                 self?.updateCreateButtonState()
             }
             present(scheduleViewController, animated: true)
+
         case .none:
             break
         }
@@ -308,6 +320,11 @@ extension NewHabitViewController: UITableViewDataSource {
         config.textProperties.font = .systemFont(ofSize: Constants.bigFontSize)
         if row == .schedule, !selectedWeekdays.isEmpty {
             config.secondaryText = scheduleSummary(days: selectedWeekdays)
+            config.secondaryTextProperties.color = UIColor(resource: .ypGray)
+            config.secondaryTextProperties.font = .systemFont(ofSize: Constants.bigFontSize)
+        }
+        if row == .category, let category = selectedCategoryTitle {
+            config.secondaryText = category
             config.secondaryTextProperties.color = UIColor(resource: .ypGray)
             config.secondaryTextProperties.font = .systemFont(ofSize: Constants.bigFontSize)
         }
@@ -476,7 +493,7 @@ extension NewHabitViewController: UITextFieldDelegate {
         guard let range = Range(range, in: current) else { return false }
         let updated = current.replacingCharacters(in: range, with: string)
 
-        if updated.count > nameLimit { return false }
+        if updated.count > Constants.trackerNameLimit { return false }
         return true
     }
 

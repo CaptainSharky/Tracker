@@ -55,6 +55,7 @@ final class TrackersListViewController: UIViewController {
         let datePicker = UIDatePicker()
         datePicker.datePickerMode = .date
         datePicker.preferredDatePickerStyle = .compact
+
         return datePicker
     }()
 
@@ -79,6 +80,7 @@ final class TrackersListViewController: UIViewController {
         collectionView.register(CategoryView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: CategoryView.identifier)
         collectionView.dataSource = self
         collectionView.delegate = self
+        collectionView.backgroundColor = UIColor(resource: .ypWhiteDay)
         return collectionView
     }()
 
@@ -88,6 +90,10 @@ final class TrackersListViewController: UIViewController {
 
         configureNavBar()
         layoutUI()
+        applyDatePickerTheme()
+        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (self: Self, _) in
+            self.applyDatePickerTheme()
+        }
 
         datePicker.addTarget(self, action: #selector(dateChanged), for: .valueChanged)
 
@@ -135,6 +141,20 @@ final class TrackersListViewController: UIViewController {
         navigationItem.leftBarButtonItem?.tintColor = .ypBlackDay
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.rightBarButtonItem = datePickerButton
+    }
+
+    private func applyDatePickerTheme() {
+        if traitCollection.userInterfaceStyle == .dark {
+            datePicker.overrideUserInterfaceStyle = .light
+            datePicker.backgroundColor = .white
+            datePicker.layer.cornerRadius = 8
+            datePicker.layer.masksToBounds = true
+        } else {
+            datePicker.overrideUserInterfaceStyle = .unspecified
+            datePicker.backgroundColor = .clear
+            datePicker.layer.cornerRadius = 0
+            datePicker.layer.masksToBounds = false
+        }
     }
 
     private func layoutUI() {

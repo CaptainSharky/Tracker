@@ -44,6 +44,7 @@ final class TabBarController: UITabBarController {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.shadowColor = .separator
+        appearance.backgroundColor = UIColor(resource: .ypWhiteDay)
         tabBar.scrollEdgeAppearance = appearance
     }
 

@@ -10,6 +10,7 @@ final class TrackersListViewController: UIViewController {
             stubImage.isHidden = !isTrackersEmpty
             stubLabel.isHidden = !isTrackersEmpty
             if isTrackersEmpty {
+                updateStubAppearance()
                 view.bringSubviewToFront(stubImage)
                 view.bringSubviewToFront(stubLabel)
             }
@@ -21,6 +22,10 @@ final class TrackersListViewController: UIViewController {
     private var selectedWeekday: Weekday {
         let weekday = Calendar.current.component(.weekday, from: selectedDate)
         return Weekday(rawValue: weekday) ?? .monday
+    }
+    private var isSearching: Bool {
+        let q = (searchField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return !q.isEmpty
     }
 
     // MARK: - UI properties
@@ -40,7 +45,7 @@ final class TrackersListViewController: UIViewController {
 
     private let stubLabel: UILabel = {
         let label = UILabel()
-        label.text = "Что будем отслеживать?"
+        label.text = Constants.stubLabelText
         label.font = .systemFont(ofSize: Constants.stubLabelFontSize)
         label.textAlignment = .center
         return label
@@ -85,7 +90,10 @@ final class TrackersListViewController: UIViewController {
         layoutUI()
 
         datePicker.addTarget(self, action: #selector(dateChanged), for: .valueChanged)
+
         searchField.delegate = self
+        searchField.addTarget(self, action: #selector(searchTextChanged), for: .editingChanged)
+
         view.backgroundColor = UIColor(resource: .ypWhiteDay)
         isTrackersEmpty = true
 
@@ -109,6 +117,16 @@ final class TrackersListViewController: UIViewController {
         let sections = dataProvider.numberOfSections()
         for s in 0..<sections { total += dataProvider.numberOfItems(in: s) }
         isTrackersEmpty = (total == 0)
+    }
+
+    private func updateStubAppearance() {
+        if isSearching {
+            stubImage.image = UIImage(resource: .stubSearch)
+            stubLabel.text = "Ничего не найдено"
+        } else {
+            stubImage.image = UIImage(resource: .stubStar)
+            stubLabel.text = Constants.stubLabelText
+        }
     }
 
     private func configureNavBar() {
@@ -161,6 +179,12 @@ final class TrackersListViewController: UIViewController {
     @objc
     private func dateChanged() {
         try? dataProvider.performFetch(filter: .init(weekday: selectedWeekday, search: searchField.text))
+    }
+
+    @objc
+    private func searchTextChanged(_ textField: UITextField) {
+        try? dataProvider.performFetch(filter: .init(weekday: selectedWeekday, search: textField.text))
+        updateEmptyState()
     }
 }
 
@@ -238,9 +262,16 @@ extension TrackersListViewController: UICollectionViewDelegateFlowLayout {
     }
 }
 
+// MARK: - UITextFieldDelegate protocol
 extension TrackersListViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
+        return true
+    }
+
+    func textFieldShouldClear(_ textField: UITextField) -> Bool {
+        try? dataProvider.performFetch(filter: .init(weekday: selectedWeekday, search: nil))
+        updateEmptyState()
         return true
     }
 }
@@ -254,5 +285,6 @@ extension TrackersListViewController {
         static let cvSizeHeight: CGFloat = 148
         static let cvSectionInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: Constants.cvInsets, bottom: Constants.cvInsets, right: Constants.cvInsets)
         static let cvHeaderHeight: CGFloat = 40
+        static let stubLabelText: String = "Что будем отслеживать?"
     }
 }

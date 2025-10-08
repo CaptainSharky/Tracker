@@ -31,7 +31,7 @@ final class TrackersListViewController: UIViewController {
     // MARK: - UI properties
     private let searchField: UISearchTextField = {
         let searchField = UISearchTextField()
-        searchField.placeholder = "Поиск"
+        searchField.placeholder = NSLocalizedString("search", comment: "searchField placeholder")
         searchField.backgroundColor = UIColor(resource: .ypSearchFieldBackground)
         searchField.returnKeyType = .done
         return searchField
@@ -128,7 +128,7 @@ final class TrackersListViewController: UIViewController {
     private func updateStubAppearance() {
         if isSearching {
             stubImage.image = UIImage(resource: .stubSearch)
-            stubLabel.text = "Ничего не найдено"
+            stubLabel.text = NSLocalizedString("nothing_found", comment: "Empty search results label")
         } else {
             stubImage.image = UIImage(resource: .stubStar)
             stubLabel.text = Constants.stubLabelText
@@ -136,7 +136,7 @@ final class TrackersListViewController: UIViewController {
     }
 
     private func configureNavBar() {
-        title = "Трекеры"
+        title = NSLocalizedString("trackers", comment: "NavBar title")
         navigationItem.leftBarButtonItem = addButton
         navigationItem.leftBarButtonItem?.tintColor = .ypBlackDay
         navigationController?.navigationBar.prefersLargeTitles = true
@@ -305,6 +305,6 @@ extension TrackersListViewController {
         static let cvSizeHeight: CGFloat = 148
         static let cvSectionInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: Constants.cvInsets, bottom: Constants.cvInsets, right: Constants.cvInsets)
         static let cvHeaderHeight: CGFloat = 40
-        static let stubLabelText: String = "Что будем отслеживать?"
+        static let stubLabelText: String = NSLocalizedString("stub_text", comment: "Stub label text")
     }
 }

@@ -35,7 +35,6 @@ final class CategoryViewController: UIViewController {
         tableView.separatorInset = Constants.tvSeparatorInsets
         tableView.isScrollEnabled = true
         tableView.clipsToBounds = true
-        tableView.separatorStyle = .none
         return tableView
     }()
 
@@ -124,7 +123,6 @@ final class CategoryViewController: UIViewController {
             addCategoryButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -50),
             addCategoryButton.heightAnchor.constraint(equalToConstant: 60),
 
-
             categoryTableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
             categoryTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             categoryTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
@@ -139,7 +137,11 @@ final class CategoryViewController: UIViewController {
     // MARK: - Actions
     @objc
     private func addButtonTapped() {
-
+        let viewController = AddCategoryViewController()
+        viewController.onCreate = { [weak self] title in
+            self?.viewModel.addCategory(title: title)
+        }
+        present(viewController, animated: true)
     }
 
     private func finishAndReturn() {
@@ -165,6 +167,8 @@ extension CategoryViewController: UITableViewDataSource {
 
         if indexPath.row == viewModel.numberOfRows() - 1 {
             cell.separatorInset = UIEdgeInsets(top: 0, left: tableView.bounds.width, bottom: 0, right: 0)
+        } else {
+            cell.separatorInset = Constants.tvSeparatorInsets
         }
 
         cell.backgroundColor = UIColor(resource: .ypBackground)

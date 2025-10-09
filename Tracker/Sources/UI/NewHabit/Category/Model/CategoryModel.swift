@@ -9,4 +9,8 @@ final class CategoryModel {
         let titles = (try? store.allTitles()) ?? []
         return titles.map { Category(title: $0, isSelected: false) }
     }
+
+    func createCategory(title: String) throws {
+        try store.getOrCreate(title: title)
+    }
 }

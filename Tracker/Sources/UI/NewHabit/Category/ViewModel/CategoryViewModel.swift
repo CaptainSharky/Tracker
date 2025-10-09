@@ -39,4 +39,10 @@ final class CategoryViewModel {
         for i in items.indices { items[i].isSelected = (i == index) }
         selectedTitle = items[index].title
     }
+
+    func addCategory(title: String) {
+        try? model.createCategory(title: title)
+        selectedTitle = title
+        load()
+    }
 }

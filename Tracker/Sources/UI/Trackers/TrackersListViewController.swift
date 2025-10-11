@@ -290,7 +290,18 @@ extension TrackersListViewController: UICollectionViewDelegateFlowLayout {
             previewProvider: nil,
         ) { [weak self] _ in
             let edit = UIAction(title: "Редактировать") { _ in
+                guard let self else { return }
 
+                let tracker = self.dataProvider.tracker(at: indexPath)
+                let categoryTitle = self.dataProvider.sectionTitle(at: indexPath.section) ?? ""
+                let doneCount = (try? self.recordStore.completionCount(trackerID: tracker.id)) ?? 0
+
+                let vc = NewHabitViewController()
+                vc.configureForEdit(with: tracker, categoryTitle: categoryTitle, completedDays: doneCount)
+                vc.update = { [weak self] updated, newCategory in
+                    try? self?.trackerStore.update(updated, inCategory: newCategory)
+                }
+                self.present(vc, animated: true)
             }
 
             let delete = UIAction(title: "Удалить", attributes: .destructive) { _ in

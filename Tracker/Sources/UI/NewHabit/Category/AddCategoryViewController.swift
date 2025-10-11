@@ -3,11 +3,13 @@ import UIKit
 final class AddCategoryViewController: UIViewController {
 
     var onCreate: ((String) -> Void)?
+    private var mode: Mode
+    private let initialTitle: String?
 
     // MARK: - UI properties
-    private let titleLabel: UILabel = {
+    private lazy var titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "Новая категория"
+        label.text = mode == .add ? "Новая категория" : "Редактирование категории"
         label.font = Constants.font
         return label
     }()
@@ -54,14 +56,32 @@ final class AddCategoryViewController: UIViewController {
     }
 
     // MARK: - Lifecycle
+    init(mode: Mode = .add, initialTitle: String? = nil) {
+        self.mode = mode
+        self.initialTitle = initialTitle
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
         view.backgroundColor = UIColor(resource: .ypWhiteDay)
         layoutUI()
+        setInitialTitle()
     }
 
     // MARK: - Private methods
+    private func setInitialTitle() {
+        if let initialTitle, mode == .edit {
+            nameTextField.text = initialTitle
+            updateCreateButtonState()
+        }
+    }
+
     private func updateCreateButtonState() {
         let hasName = !(nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
         isCreateButtonEnabled = hasName
@@ -137,5 +157,10 @@ extension AddCategoryViewController {
         static let font: UIFont = .systemFont(ofSize: 16)
         static let bigFontSize: CGFloat = 17
         static let cornerRadius: CGFloat = 16
+    }
+
+    enum Mode {
+        case add
+        case edit
     }
 }

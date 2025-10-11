@@ -50,6 +50,9 @@ final class TrackerViewCell: UICollectionViewCell {
         return button
     }()
 
+    var contextMenuPreviewView: UIView { cardView }
+    var contextMenuCornerRadius: CGFloat { Constants.cardCornerRadius }
+
     // MARK: - Private properties
     private var trackerId: UUID?
     private var isCompleted = false

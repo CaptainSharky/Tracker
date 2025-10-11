@@ -263,7 +263,7 @@ extension TrackersListViewController: UICollectionViewDelegateFlowLayout {
         return 0
     }
 
-    // MARK: Supplementary View (Header)
+    // MARK: - Supplementary View (Header)
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         guard let view = collectionView.dequeueReusableSupplementaryView(
             ofKind: kind,
@@ -279,6 +279,50 @@ extension TrackersListViewController: UICollectionViewDelegateFlowLayout {
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
         return CGSize(width: collectionView.bounds.width, height: Constants.cvHeaderHeight)
+    }
+
+    // MARK: - Context menu
+    func collectionView(_ collectionView: UICollectionView, contextMenuConfigurationForItemsAt indexPaths: [IndexPath], point: CGPoint) -> UIContextMenuConfiguration? {
+        guard let indexPath = indexPaths.first else { return nil }
+
+        return UIContextMenuConfiguration(
+            identifier: indexPath as NSCopying,
+            previewProvider: nil,
+        ) { [weak self] _ in
+            let edit = UIAction(title: "Редактировать") { _ in
+
+            }
+
+            let delete = UIAction(title: "Удалить", attributes: .destructive) { _ in
+
+            }
+
+            return UIMenu(children: [edit, delete])
+        }
+    }
+
+    func collectionView(_ collectionView: UICollectionView, contextMenuConfiguration configuration: UIContextMenuConfiguration, highlightPreviewForItemAt indexPath: IndexPath) -> UITargetedPreview? {
+        targetedPreview(for: indexPath, in: collectionView)
+    }
+
+    func collectionView(_ collectionView: UICollectionView, contextMenuConfiguration configuration: UIContextMenuConfiguration, dismissalPreviewForItemAt indexPath: IndexPath) -> UITargetedPreview? {
+        targetedPreview(for: indexPath, in: collectionView)
+    }
+
+    private func targetedPreview(
+        for indexPath: IndexPath,
+        in collectionView: UICollectionView
+    ) -> UITargetedPreview? {
+        guard let cell = collectionView.cellForItem(at: indexPath) as? TrackerViewCell else { return nil }
+        let view = cell.contextMenuPreviewView
+        view.layoutIfNeeded()
+        
+        let params = UIPreviewParameters()
+        params.backgroundColor = .clear
+        let path = UIBezierPath(roundedRect: view.bounds, cornerRadius: cell.contextMenuCornerRadius)
+        params.visiblePath = path
+
+        return UITargetedPreview(view: view, parameters: params)
     }
 }
 

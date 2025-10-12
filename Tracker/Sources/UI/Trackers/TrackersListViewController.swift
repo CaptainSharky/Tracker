@@ -27,6 +27,9 @@ final class TrackersListViewController: UIViewController {
         let q = (searchField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         return !q.isEmpty
     }
+    private var currentFilter: FilterKind = .none {
+        didSet { updateStubAppearance() }
+    }
 
     // MARK: - UI properties
     private let searchField: UISearchTextField = {
@@ -84,6 +87,18 @@ final class TrackersListViewController: UIViewController {
         return collectionView
     }()
 
+    private lazy var filtersButton: UIButton = {
+        let button = UIButton()
+        let title = NSLocalizedString("filters", comment: "Filters button title")
+        button.setTitle(title, for: .normal)
+        button.titleLabel?.font = Constants.filtersButtonFont
+        button.titleLabel?.textColor = .white
+        button.layer.cornerRadius = Constants.cornerRadius
+        button.backgroundColor = UIColor(resource: .ypBlue)
+        button.addTarget(self, action: #selector(filtersButtonTapped), for: .touchUpInside)
+        return button
+    }()
+
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -106,11 +121,13 @@ final class TrackersListViewController: UIViewController {
         dataProvider.onChange = { [weak self] in
             guard let self else { return }
             self.updateEmptyState()
+            self.updateFiltersButton()
             self.trackersCollectionView.reloadData()
         }
 
         try? dataProvider.performFetch(filter: .init(weekday: selectedWeekday, search: nil))
         updateEmptyState()
+        updateFiltersButton()
     }
 
     // MARK: - Private methods
@@ -125,8 +142,13 @@ final class TrackersListViewController: UIViewController {
         isTrackersEmpty = (total == 0)
     }
 
+    private func updateFiltersButton() {
+        let hasAny = (try? trackerStore.hasAny(weekday: selectedWeekday)) ?? false
+        filtersButton.isHidden = !hasAny
+    }
+
     private func updateStubAppearance() {
-        if isSearching {
+        if isSearching || currentFilter != .none {
             stubImage.image = UIImage(resource: .stubSearch)
             stubLabel.text = NSLocalizedString("nothing_found", comment: "Empty search results label")
         } else {
@@ -157,6 +179,18 @@ final class TrackersListViewController: UIViewController {
         }
     }
 
+    private func applyFetchForCurrentState() {
+        let q = searchField.text
+        switch currentFilter {
+        case .none:
+            try? dataProvider.performFetch(filter: .init(weekday: selectedWeekday, search: q, completion: nil))
+        case .completed:
+            try? dataProvider.performFetch(filter: .init(weekday: selectedWeekday, search: q, completion: .completed(selectedDate)))
+        case .notCompleted:
+            try? dataProvider.performFetch(filter: .init(weekday: selectedWeekday, search: q, completion: .notCompleted(selectedDate)))
+        }
+    }
+
     private func showDeletionAlert(trackerID: UUID) {
         let alert = UIAlertController(
             title: Constants.alertText,
@@ -179,7 +213,7 @@ final class TrackersListViewController: UIViewController {
     }
 
     private func layoutUI() {
-        [searchField, stubImage, stubLabel, trackersCollectionView].forEach {
+        [searchField, stubImage, stubLabel, trackersCollectionView, filtersButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
@@ -203,7 +237,12 @@ final class TrackersListViewController: UIViewController {
             trackersCollectionView.topAnchor.constraint(equalTo: searchField.bottomAnchor, constant: 24),
             trackersCollectionView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             trackersCollectionView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            trackersCollectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+            trackersCollectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+
+            filtersButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            filtersButton.heightAnchor.constraint(equalToConstant: 50),
+            filtersButton.widthAnchor.constraint(equalToConstant: 114),
+            filtersButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16)
         ])
     }
 
@@ -219,13 +258,53 @@ final class TrackersListViewController: UIViewController {
 
     @objc
     private func dateChanged() {
-        try? dataProvider.performFetch(filter: .init(weekday: selectedWeekday, search: searchField.text))
+        applyFetchForCurrentState()
+        updateFiltersButton()
     }
 
     @objc
     private func searchTextChanged(_ textField: UITextField) {
-        try? dataProvider.performFetch(filter: .init(weekday: selectedWeekday, search: textField.text))
+        applyFetchForCurrentState()
         updateEmptyState()
+    }
+
+    @objc
+    private func filtersButtonTapped() {
+        let filtersViewController = FiltersViewController()
+
+        switch currentFilter {
+        case .none:
+            filtersViewController.selectedRow = nil
+        case .completed:
+            filtersViewController.selectedRow = .completed
+        case .notCompleted:
+            filtersViewController.selectedRow = .notCompleted
+        }
+
+        filtersViewController.onSelect = { [weak self] selected in
+            guard let self else { return }
+
+            switch selected {
+            case .allTrackers:
+                self.currentFilter = .none
+                self.applyFetchForCurrentState()
+            case .todayTrackers:
+                self.currentFilter = .none
+                self.datePicker.date = Date()
+                self.applyDatePickerTheme()
+                self.applyFetchForCurrentState()
+            case .completed:
+                self.currentFilter = .completed
+                self.applyFetchForCurrentState()
+            case .notCompleted:
+                self.currentFilter = .notCompleted
+                self.applyFetchForCurrentState()
+            }
+
+            self.updateEmptyState()
+            self.updateFiltersButton()
+        }
+        present(filtersViewController, animated: true)
     }
 }
 
@@ -377,6 +456,8 @@ extension TrackersListViewController: UITextFieldDelegate {
 
 extension TrackersListViewController {
     private enum Constants {
+        static let cornerRadius: CGFloat = 16
+        static let filtersButtonFont: UIFont = .systemFont(ofSize: 17)
         static let stubLabelFontSize: CGFloat = 12
         static let addButtonInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: -10, bottom: 0, right: 0)
         static let cvInteritemSpacing: CGFloat = 9
@@ -386,5 +467,11 @@ extension TrackersListViewController {
         static let cvHeaderHeight: CGFloat = 40
         static let stubLabelText: String = NSLocalizedString("stub_text", comment: "Stub label text")
         static let alertText: String = "Уверены, что хотите удалить трекер?"
+    }
+
+    private enum FilterKind {
+        case none
+        case completed
+        case notCompleted
     }
 }

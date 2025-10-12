@@ -9,9 +9,11 @@ protocol TrackerStoreProtocol {
 struct TrackerFilter {
     var weekday: Weekday?
     var search: String?
+    var completion: CompletionFilter?
 
-    init(weekday: Weekday? = nil, search: String? = nil) {
+    init(weekday: Weekday? = nil, search: String? = nil, completion: CompletionFilter? = nil) {
         self.weekday = weekday
         self.search = search
+        self.completion = completion
     }
 }

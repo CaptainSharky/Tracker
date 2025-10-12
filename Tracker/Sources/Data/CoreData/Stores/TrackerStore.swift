@@ -43,6 +43,13 @@ final class TrackerStore: TrackerStoreProtocol {
         try CoreDataStack.shared.saveContext(context)
     }
 
+    func hasAny(weekday: Weekday) throws -> Bool {
+        let request = NSFetchRequest<NSManagedObject>(entityName: "TrackerEntity")
+        request.predicate = NSPredicate(format: "(schedule & %d) != 0", weekday.bitMask)
+        request.fetchLimit = 1
+        return try context.count(for: request) > 0
+    }
+
     func fetchEntity(id: UUID) throws -> NSManagedObject? {
         let request = NSFetchRequest<NSManagedObject>(entityName: "TrackerEntity")
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)

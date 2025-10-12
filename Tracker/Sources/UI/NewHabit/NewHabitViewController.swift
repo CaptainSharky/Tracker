@@ -257,7 +257,6 @@ final class NewHabitViewController: UIViewController {
             streakLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             streakLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
 
-            //nameTextField.topAnchor.constraint(equalTo: streakLabel.bottomAnchor, constant: 40),
             nameTextField.heightAnchor.constraint(equalToConstant: 75),
             nameTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             nameTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),

@@ -1,6 +1,11 @@
 import CoreData
 import UIKit
 
+enum CompletionFilter {
+    case completed(Date)
+    case notCompleted(Date)
+}
+
 protocol TrackersDataProviderProtocol {
     var onChange: (() -> Void)? { get set }
     func performFetch(filter: TrackerFilter) throws
@@ -31,6 +36,29 @@ final class TrackersDataProvider: NSObject, TrackersDataProviderProtocol {
         if let q = filter.search?.trimmingCharacters(in: .whitespacesAndNewlines), !q.isEmpty {
             predicates.append(NSPredicate(format: "title CONTAINS[cd] %@", q))
         }
+        if let completion = filter.completion {
+            let (start, end) = Self.dayBounds(for: {
+                switch completion {
+                case .completed(let d), .notCompleted(let d): return d
+                }
+            }())
+
+            switch completion {
+            case .completed:
+                let p = NSPredicate(
+                    format: "SUBQUERY(records, $r, $r.date >= %@ AND $r.date < %@).@count > 0",
+                    start as NSDate, end as NSDate
+                )
+                predicates.append(p)
+            case .notCompleted:
+                let p = NSPredicate(
+                    format: "SUBQUERY(records, $r, $r.date >= %@ AND $r.date < %@).@count == 0",
+                    start as NSDate, end as NSDate
+                )
+                predicates.append(p)
+            }
+        }
+
         if !predicates.isEmpty {
             request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
         }
@@ -89,6 +117,12 @@ final class TrackersDataProvider: NSObject, TrackersDataProviderProtocol {
     
     func sectionTitle(at section: Int) -> String? {
         fetchResultsController?.sections?[section].name
+    }
+
+    private static func dayBounds(for date: Date) -> (Date, Date) {
+        let start = Calendar.current.startOfDay(for: date)
+        let end = Calendar.current.date(byAdding: .day, value: 1, to: start) ?? start
+        return (start, end)
     }
 }
 

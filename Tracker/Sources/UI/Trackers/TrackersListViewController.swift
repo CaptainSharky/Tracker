@@ -157,6 +157,27 @@ final class TrackersListViewController: UIViewController {
         }
     }
 
+    private func showDeletionAlert(trackerID: UUID) {
+        let alert = UIAlertController(
+            title: Constants.alertText,
+            message: nil,
+            preferredStyle: .actionSheet
+        )
+
+        let delete = UIAlertAction(
+            title: "Удалить",
+            style: .destructive
+        ) { [weak self] _ in
+            try? self?.trackerStore.delete(id: trackerID)
+        }
+
+        let cancel = UIAlertAction(title: "Отменить", style: .cancel)
+
+        alert.addAction(delete)
+        alert.addAction(cancel)
+        present(alert, animated: true)
+    }
+
     private func layoutUI() {
         [searchField, stubImage, stubLabel, trackersCollectionView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -305,7 +326,10 @@ extension TrackersListViewController: UICollectionViewDelegateFlowLayout {
             }
 
             let delete = UIAction(title: "Удалить", attributes: .destructive) { _ in
+                guard let self else { return }
 
+                let tracker = self.dataProvider.tracker(at: indexPath)
+                self.showDeletionAlert(trackerID: tracker.id)
             }
 
             return UIMenu(children: [edit, delete])
@@ -361,5 +385,6 @@ extension TrackersListViewController {
         static let cvSectionInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: Constants.cvInsets, bottom: Constants.cvInsets, right: Constants.cvInsets)
         static let cvHeaderHeight: CGFloat = 40
         static let stubLabelText: String = NSLocalizedString("stub_text", comment: "Stub label text")
+        static let alertText: String = "Уверены, что хотите удалить трекер?"
     }
 }

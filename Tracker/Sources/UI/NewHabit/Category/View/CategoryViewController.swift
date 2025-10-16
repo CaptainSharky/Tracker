@@ -35,7 +35,6 @@ final class CategoryViewController: UIViewController {
         tableView.separatorInset = Constants.tvSeparatorInsets
         tableView.isScrollEnabled = true
         tableView.clipsToBounds = true
-        tableView.separatorStyle = .none
         return tableView
     }()
 
@@ -124,7 +123,6 @@ final class CategoryViewController: UIViewController {
             addCategoryButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -50),
             addCategoryButton.heightAnchor.constraint(equalToConstant: 60),
 
-
             categoryTableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
             categoryTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             categoryTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
@@ -136,17 +134,43 @@ final class CategoryViewController: UIViewController {
         tableHeightConstraint?.constant = min(categoryTableView.contentSize.height, 450)
     }
 
-    // MARK: - Actions
-    @objc
-    private func addButtonTapped() {
-
-    }
-
     private func finishAndReturn() {
         onDone?(viewModel.selectedTitle)
     }
+
+    private func showDeletionAlert(categoryTitle: String) {
+        let alert = UIAlertController(
+            title: Constants.alertText,
+            message: nil,
+            preferredStyle: .actionSheet
+        )
+
+        let delete = UIAlertAction(
+            title: "Удалить",
+            style: .destructive
+        ) { [weak self] _ in
+            self?.viewModel.deleteCategory(title: categoryTitle)
+        }
+
+        let cancel = UIAlertAction(title: "Отменить", style: .cancel)
+
+        alert.addAction(delete)
+        alert.addAction(cancel)
+        present(alert, animated: true)
+    }
+
+    // MARK: - Actions
+    @objc
+    private func addButtonTapped() {
+        let viewController = AddCategoryViewController()
+        viewController.onCreate = { [weak self] title in
+            self?.viewModel.addCategory(title: title)
+        }
+        present(viewController, animated: true)
+    }
 }
 
+// MARK: - UITableViewDataSource protocol
 extension CategoryViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         viewModel.numberOfRows()
@@ -165,6 +189,8 @@ extension CategoryViewController: UITableViewDataSource {
 
         if indexPath.row == viewModel.numberOfRows() - 1 {
             cell.separatorInset = UIEdgeInsets(top: 0, left: tableView.bounds.width, bottom: 0, right: 0)
+        } else {
+            cell.separatorInset = Constants.tvSeparatorInsets
         }
 
         cell.backgroundColor = UIColor(resource: .ypBackground)
@@ -172,13 +198,40 @@ extension CategoryViewController: UITableViewDataSource {
     }
 }
 
+// MARK: - UITableViewDelegate protocol
 extension CategoryViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         viewModel.select(at: indexPath.row)
         tableView.reloadData()
     }
+
+    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+
+        UIContextMenuConfiguration(actionProvider: { [weak self] actions in
+            guard let self else { return UIMenu(children: []) }
+            let oldTitle = self.viewModel.title(at: indexPath.row)
+
+            let edit = UIAction(title: "Редактировать") { _ in
+                let viewController = AddCategoryViewController(mode: .edit, initialTitle: oldTitle)
+                viewController.onCreate = { [weak self] newTitle in
+                    self?.viewModel.renameCategory(oldTitle: oldTitle, newTitle: newTitle)
+                }
+                self.present(viewController, animated: true)
+            }
+
+            let delete = UIAction(
+                title: "Удалить",
+                attributes: .destructive
+            ) { [weak self] _ in
+                self?.showDeletionAlert(categoryTitle: oldTitle)
+            }
+
+            return UIMenu(children: [edit, delete])
+        })
+    }
 }
 
+// MARK: - UIAdaptivePresentationControllerDelegate protocol
 extension CategoryViewController: UIAdaptivePresentationControllerDelegate {
     func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
         finishAndReturn()
@@ -198,6 +251,7 @@ extension CategoryViewController {
         static let buttonText: String = "Добавить категорию"
         static let cornerRadius: CGFloat = 16
         static let stubText: String = "Привычки и события можно объединить по смыслу"
+        static let alertText: String = "Эта категория точно не нужна?"
         static let tvRowHeight: CGFloat = 75
         static let tvSeparatorInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         static let tvFontSize: CGFloat = 17

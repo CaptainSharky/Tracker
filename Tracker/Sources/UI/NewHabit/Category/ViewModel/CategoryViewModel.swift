@@ -17,6 +17,7 @@ final class CategoryViewModel {
     }
 
     private let model: CategoryModel
+    private let fallBackCategoryTitle = "Без категории"
 
     init(model: CategoryModel = CategoryModel(), preselectedTitle: String? = nil) {
         self.model = model
@@ -38,5 +39,23 @@ final class CategoryViewModel {
     func select(at index: Int) {
         for i in items.indices { items[i].isSelected = (i == index) }
         selectedTitle = items[index].title
+    }
+
+    func addCategory(title: String) {
+        try? model.createCategory(title: title)
+        selectedTitle = title
+        load()
+    }
+
+    func renameCategory(oldTitle: String, newTitle: String) {
+        try? model.renameCategory(oldTitle: oldTitle, newTitle: newTitle)
+        if selectedTitle == oldTitle { selectedTitle = newTitle }
+        load()
+    }
+
+    func deleteCategory(title: String) {
+        try? model.deleteCategory(title: title, reassignTo: fallBackCategoryTitle)
+        if selectedTitle == title { selectedTitle = nil }
+        load()
     }
 }

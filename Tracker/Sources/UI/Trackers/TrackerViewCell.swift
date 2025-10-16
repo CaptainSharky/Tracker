@@ -50,6 +50,9 @@ final class TrackerViewCell: UICollectionViewCell {
         return button
     }()
 
+    var contextMenuPreviewView: UIView { cardView }
+    var contextMenuCornerRadius: CGFloat { Constants.cardCornerRadius }
+
     // MARK: - Private properties
     private var trackerId: UUID?
     private var isCompleted = false
@@ -136,20 +139,11 @@ final class TrackerViewCell: UICollectionViewCell {
     }
 
     private func daysCountFormatted(daysCount: Int) -> String {
-        var daysCountText = String(daysCount)
-
-        if (11...14).contains(daysCount % 100) { daysCountText += " дней" }
-        else {
-            switch daysCount % 10 {
-            case 1:
-                daysCountText += " день"
-            case 2...4:
-                daysCountText += " дня"
-            default:
-                daysCountText += " дней"
-            }
-        }
-        return daysCountText
+        let daysCountString = String.localizedStringWithFormat(
+            NSLocalizedString("daysCount", comment: "Days count in Tracker cell"),
+            daysCount
+        )
+        return daysCountString
     }
 
     // MARK: - Actions

@@ -3,7 +3,10 @@ import UIKit
 final class NewHabitViewController: UIViewController {
     private var selectedWeekdays = Set<Weekday>()
     private var selectedCategoryTitle: String?
+    private var mode: Mode = .create
+
     var create: ((Tracker, String) -> Void)?
+    var update: ((Tracker, String) -> Void)?
 
     // MARK: - UI properties
     private let scrollView: UIScrollView = {
@@ -18,6 +21,13 @@ final class NewHabitViewController: UIViewController {
         let label = UILabel()
         label.text = "Новая привычка"
         label.font = .systemFont(ofSize: Constants.fontSize)
+        return label
+    }()
+
+    private let streakLabel: UILabel = {
+        let label = UILabel()
+        label.text = "5 дней"
+        label.font = .systemFont(ofSize: 32, weight: .bold)
         return label
     }()
 
@@ -101,6 +111,8 @@ final class NewHabitViewController: UIViewController {
 
     private var tableTopToLabel: NSLayoutConstraint?
     private var tableTopToTextField: NSLayoutConstraint?
+    private var nameTopToTitle: NSLayoutConstraint?
+    private var nameTopToStreak: NSLayoutConstraint?
     private var selectedEmojiIndex: Int?
     private var selectedColorIndex: Int?
 
@@ -126,6 +138,12 @@ final class NewHabitViewController: UIViewController {
         )
 
         layoutUI()
+        applyMode()
+    }
+
+    func configureForEdit(with tracker: Tracker, categoryTitle: String, completedDays: Int) {
+        mode = .edit(id: tracker.id, category: categoryTitle, days: completedDays, tracker: tracker)
+        if isViewLoaded { applyMode() }
     }
 
     // MARK: - Private methods
@@ -155,6 +173,50 @@ final class NewHabitViewController: UIViewController {
         }
     }
 
+    private func daysCountFormatted(daysCount: Int) -> String {
+        let daysCountString = String.localizedStringWithFormat(
+            NSLocalizedString("daysCount", comment: "Days count in Tracker cell"),
+            daysCount
+        )
+        return daysCountString
+    }
+
+    private func applyMode() {
+        switch mode {
+        case .create:
+            titleLabel.text = "Новая привычка"
+            createButton.setTitle("Создать", for: .normal)
+
+            streakLabel.isHidden = true
+            nameTopToStreak?.isActive = false
+            nameTopToTitle?.isActive = true
+        case .edit(_, let category, let days, let tracker):
+            titleLabel.text = "Редактирование привычки"
+            createButton.setTitle("Сохранить", for: .normal)
+
+            streakLabel.isHidden = false
+            streakLabel.text = daysCountFormatted(daysCount: days)
+            nameTopToTitle?.isActive = false
+            nameTopToStreak?.isActive = true
+
+            selectedCategoryTitle = category
+            selectedWeekdays = tracker.schedule
+            nameTextField.text = tracker.title
+
+            if let indexEmoji = emojies.firstIndex(of: tracker.emoji) {
+                selectedEmojiIndex = indexEmoji
+            }
+            let targetHex = tracker.color.hexRGB
+            if let indexColor = colors.firstIndex(where: { $0.hexRGB == targetHex }) {
+                selectedColorIndex = indexColor
+            }
+
+            settingsTableView.reloadData()
+            customizationCollectionView.reloadData()
+            updateCreateButtonState()
+        }
+    }
+
     private func layoutUI() {
         view.backgroundColor = UIColor(resource: .ypWhiteDay)
 
@@ -176,7 +238,7 @@ final class NewHabitViewController: UIViewController {
             contentView.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor)
         ])
 
-        [titleLabel, nameTextField, limitLabel, settingsTableView, customizationCollectionView, cancelButton, createButton].forEach {
+        [titleLabel, streakLabel, nameTextField, limitLabel, settingsTableView, customizationCollectionView, cancelButton, createButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             contentView.addSubview($0)
         }
@@ -185,11 +247,16 @@ final class NewHabitViewController: UIViewController {
         tableTopToTextField = settingsTableView.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 24)
         tableTopToTextField?.isActive = true
 
+        nameTopToStreak = nameTextField.topAnchor.constraint(equalTo: streakLabel.bottomAnchor, constant: 40)
+        nameTopToTitle = nameTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 40)
+
         NSLayoutConstraint.activate([
             titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
 
-            nameTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
+            streakLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            streakLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
+
             nameTextField.heightAnchor.constraint(equalToConstant: 75),
             nameTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             nameTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
@@ -243,8 +310,16 @@ final class NewHabitViewController: UIViewController {
         let emoji = emojies[selectedEmojiIndex]
         let color = colors[selectedColorIndex]
 
-        let tracker = Tracker(title: title, color: color, emoji: emoji, schedule: selectedWeekdays)
-        create?(tracker, category)
+
+
+        switch mode {
+        case .create:
+            let tracker = Tracker(title: title, color: color, emoji: emoji, schedule: selectedWeekdays)
+            create?(tracker, category)
+        case .edit(let id, _, _, _):
+            let tracker = Tracker(id: id, title: title, color: color, emoji: emoji, schedule: selectedWeekdays)
+            update?(tracker, category)
+        }
         dismiss(animated: true)
     }
 
@@ -555,4 +630,9 @@ private enum CustomizationSection: Int, CaseIterable {
             return "Цвет"
         }
     }
+}
+
+private enum Mode {
+    case create
+    case edit(id: UUID, category: String, days: Int, tracker: Tracker)
 }

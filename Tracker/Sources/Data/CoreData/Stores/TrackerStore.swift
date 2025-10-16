@@ -24,13 +24,16 @@ final class TrackerStore: TrackerStoreProtocol {
         try CoreDataStack.shared.saveContext(context)
     }
 
-    func update(_ tracker: Tracker) throws {
+    func update(_ tracker: Tracker, inCategory title: String?) throws {
         guard let entity = try fetchEntity(id: tracker.id) else { throw StoreError.notFound }
         entity.setValue(tracker.title, forKey: "title")
         entity.setValue(tracker.color.hexRGB, forKey: "colorHex")
         entity.setValue(tracker.emoji, forKey: "emoji")
         entity.setValue(Weekday.mask(for: tracker.schedule), forKey: "schedule")
-
+        if let title {
+            let category = try categoryStore.fetchOrInsert(title: title)
+            entity.setValue(category, forKey: "category")
+        }
         try CoreDataStack.shared.saveContext(context)
     }
 
@@ -38,6 +41,13 @@ final class TrackerStore: TrackerStoreProtocol {
         guard let entity = try fetchEntity(id: id) else { return }
         context.delete(entity)
         try CoreDataStack.shared.saveContext(context)
+    }
+
+    func hasAny(weekday: Weekday) throws -> Bool {
+        let request = NSFetchRequest<NSManagedObject>(entityName: "TrackerEntity")
+        request.predicate = NSPredicate(format: "(schedule & %d) != 0", weekday.bitMask)
+        request.fetchLimit = 1
+        return try context.count(for: request) > 0
     }
 
     func fetchEntity(id: UUID) throws -> NSManagedObject? {

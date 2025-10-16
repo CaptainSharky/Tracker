@@ -133,12 +133,14 @@ final class TrackersListViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        analyticsService.report(event: "open", params: ["screen" : "Main"])
+        // analyticsService.report(event: "open", params: ["screen" : "Main"])
+        analyticsService.report(.open(screen: .main))
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        analyticsService.report(event: "close", params: ["screen" : "Main"])
+        // analyticsService.report(event: "close", params: ["screen" : "Main"])
+        analyticsService.report(.close(screen: .main))
     }
 
     // MARK: - Private methods
@@ -266,7 +268,8 @@ final class TrackersListViewController: UIViewController {
         }
         present(newHabitViewController, animated: true)
 
-        analyticsService.report(event: "click", params: ["screen" : "Main", "item" : "add_track"])
+        // analyticsService.report(event: "click", params: ["screen" : "Main", "item" : "add_track"])
+        analyticsService.report(.click(screen: .main, item: .addTrack))
     }
 
     @objc
@@ -283,7 +286,8 @@ final class TrackersListViewController: UIViewController {
 
     @objc
     private func filtersButtonTapped() {
-        analyticsService.report(event: "click", params: ["screen" : "Main", "item" : "filter"])
+        // analyticsService.report(event: "click", params: ["screen" : "Main", "item" : "filter"])
+        analyticsService.report(.click(screen: .main, item: .filter))
 
         let filtersViewController = FiltersViewController()
 
@@ -353,7 +357,8 @@ extension TrackersListViewController: UICollectionViewDataSource {
 
         cell.onTap = { [weak self] record in
             guard let self else { return }
-            self.analyticsService.report(event: "click", params: ["screen" : "Main", "item" : "track"])
+            //self.analyticsService.report(event: "click", params: ["screen" : "Main", "item" : "track"])
+            self.analyticsService.report(.click(screen: .main, item: .track))
             try? self.recordStore.toggle(trackerID: record.trackerID, on: self.selectedDate)
             self.trackersCollectionView.reloadItems(at: [indexPath])
         }
@@ -407,7 +412,8 @@ extension TrackersListViewController: UICollectionViewDelegateFlowLayout {
         ) { [weak self] _ in
             let edit = UIAction(title: "Редактировать") { _ in
                 guard let self else { return }
-                self.analyticsService.report(event: "click", params: ["screen" : "Main", "item" : "edit"])
+                //self.analyticsService.report(event: "click", params: ["screen" : "Main", "item" : "edit"])
+                self.analyticsService.report(.click(screen: .main, item: .edit))
 
                 let tracker = self.dataProvider.tracker(at: indexPath)
                 let categoryTitle = self.dataProvider.sectionTitle(at: indexPath.section) ?? ""
@@ -423,7 +429,8 @@ extension TrackersListViewController: UICollectionViewDelegateFlowLayout {
 
             let delete = UIAction(title: "Удалить", attributes: .destructive) { _ in
                 guard let self else { return }
-                self.analyticsService.report(event: "click", params: ["screen" : "Main", "item" : "delete"])
+                // self.analyticsService.report(event: "click", params: ["screen" : "Main", "item" : "delete"])
+                self.analyticsService.report(.click(screen: .main, item: .delete))
 
                 let tracker = self.dataProvider.tracker(at: indexPath)
                 self.showDeletionAlert(trackerID: tracker.id)

@@ -12,4 +12,14 @@ struct AnalyticsService {
             print("REPORT ERROR: %@", error.localizedDescription)
         })
     }
+
+    func report(_ event: AnalyticsEvent) {
+        AppMetrica.reportEvent(
+            name: event.name,
+            parameters: event.parameters,
+            onFailure: { error in
+                print("REPORT ERROR: %@", error.localizedDescription)
+            }
+        )
+    }
 }
